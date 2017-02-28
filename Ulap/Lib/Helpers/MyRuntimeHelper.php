@@ -29,7 +29,7 @@ final class MyRuntimeHelper
 		//include the file  
 		require_once($path);  
 		
-		if(!class_exists('App\\'.$className))
+		if(!class_exists($className))
 		{
 			throw MyRuntimeException::ClassNotFound($className);
 		}

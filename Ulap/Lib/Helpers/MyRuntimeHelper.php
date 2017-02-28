@@ -44,7 +44,7 @@ final class MyRuntimeHelper
 	{
 		try 
 		{ 
-			$this->reflection = $reflector = new \ReflectionClass('App\\'.$this->className);
+			$this->reflection = $reflector = new \ReflectionClass($this->className);
 			
 			if(!$reflector->isInstantiable())
 				throw MyRuntimeException::ClassNotInstantiable($this->className);

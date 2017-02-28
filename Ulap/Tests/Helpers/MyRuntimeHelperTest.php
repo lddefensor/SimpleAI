@@ -89,7 +89,7 @@ final class MyRuntimeHelperTest extends TestCase
  
 	 	$path = ROOT. DS. 'Controller/HomeController.php'; 
 		$className = 'HomeController';
-		$runtime = new MyRuntimeHelper($path, $className); 
+		$runtime = new MyRuntimeHelper($path, 'App\\'.$className); 
 		$this->assertEquals($className, $runtime->className);
 	 }
 	 
@@ -106,7 +106,7 @@ final class MyRuntimeHelperTest extends TestCase
 		
 	 	$path = ROOT. DS. 'Model/UsersModel.php'; 
 		$className = 'Users';
-		$runtime = new MyRuntimeHelper($path, $className); 
+		$runtime = new MyRuntimeHelper($path, 'App\\'.$className); 
 		
 		$instance = $runtime->instantiateClass();
 		
@@ -132,7 +132,7 @@ final class MyRuntimeHelperTest extends TestCase
 		
 	 	$path = ROOT. DS. 'Controller/HomeController.php'; 
 		$className = 'HomeController';
-		$runtime = new MyRuntimeHelper($path, $className); 
+		$runtime = new MyRuntimeHelper($path, 'App\\'.$className); 
 		
 		$instance = $runtime->instantiateClass();
 		

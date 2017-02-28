@@ -25,9 +25,13 @@ require( ROOT . DS . 'Config' . DS . 'defaults.php');
 
 require (LIB . DS . 'Helpers' . DS . 'RoutePath.php');
 require (LIB . DS . 'Helpers' . DS . 'helper.php');
+require (LIB . DS . 'Helpers' . DS . 'MyRuntimeException.php');
+require (LIB . DS . 'Helpers' . DS . 'MyRuntimeHelper.php');
 
+set_include_path(get_include_path() . PATH_SEPARATOR );
 
-// FOR RoutePathTest.php require RoutePath
+// FOR RoutePathTest.php require RoutePath  
+
 
 
 /** END OF FILE **/

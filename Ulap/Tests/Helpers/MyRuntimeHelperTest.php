@@ -88,8 +88,8 @@ final class MyRuntimeHelperTest extends TestCase
  		require_once LIB . DS . 'Controller.php';
  
 	 	$path = ROOT. DS. 'Controller/HomeController.php'; 
-		$className = 'HomeController';
-		$runtime = new MyRuntimeHelper($path, 'App\\'.$className); 
+		$className = 'App\\HomeController';
+		$runtime = new MyRuntimeHelper($path, $className); 
 		$this->assertEquals($className, $runtime->className);
 	 }
 	 

@@ -38,7 +38,6 @@ if(!defined('URL'))
 
 //Application based defaults
 require( ROOT . DS . 'Config' . DS . 'defaults.php');
-
 require( LIB . DS . 'Router.php');
 
 

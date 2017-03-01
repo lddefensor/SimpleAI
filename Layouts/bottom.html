@@ -1,5 +1,30 @@
  
 <div id="footer">
- 
+	
+</div> 
+<?php if(DEBUG && isset($_SESSION['debug'])): ?>
+<div class='alert alert-warning'>
+<h3>DEBUG</h3>
+<?php foreach($_SESSION['debug'] as $key=>$value): ?>
+<div class="row">
+	<div class="col-sm-2"><b>FILE [Line #]</b></div>
+	<div class="colo-sm-10">: <?php echo $value['file'] ?> [Line: <?php echo $value['line']?>]</div>
+</div>
+<div class="row">
+	<div class="col-sm-2"><b>Class::Method</b></div>
+	<div class="colo-sm-10">: <?php echo $value['class'] ?> <u><?php echo $value['function']?></u></div>
+</div> 
+<?php if(isset($value['value'])): ?>
+<div class="row">
+	<div class="col-sm-2"><b>message</b></div>
+	<div class="colo-sm-10"><pre style='background: transparent; border: none; color: inherit'><?php var_dump ($value['value'])?></pre></div>
+</div>
+<?php endif; ?>
+<hr />
+<?php endforeach;?>
+</div>
+<?php endif; ?>
+
+</div>
 </body>
 </html>

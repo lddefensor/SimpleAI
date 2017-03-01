@@ -41,14 +41,16 @@ require( ROOT . DS . 'Config' . DS . 'defaults.php');
   
 
 //** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error  
-set_error_handler(function($code, $message){ 
+set_error_handler(function($code, $message, $file, $line){
+	$message = array('MESSAGE: '. $message, 'FILE: '.$file, 'LINE: '. $line);
+	$message = implode("\n", $message);
 	App\ErrorHandler::handle(new Ulap\Helpers\MyRuntimeException($message, $code));
 });
 
 register_shutdown_function(function(){ 
 	$error = error_get_last(); 
 	if($error)
-	{ 
+	{
 		App\ErrorHandler::handleError($error);
 	} 
 });

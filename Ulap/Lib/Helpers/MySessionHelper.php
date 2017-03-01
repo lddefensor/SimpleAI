@@ -15,15 +15,17 @@
  
  class MySessionHelper extends Model {
 		
-		var $primaryKey = 'session_id';
+		public $primaryKey = 'session_id';
 	 
 		public function __construct(string $name = null, string $connection = null)
 		{
-					$dbSession = defined('DB_SESSION') ? DB_SESSION : array();
-					$tableName = isset($dbSession['tableName']) ? $dbSession['tableName'] : 'simple-ai-session';
-					$connection = isset($dbSession['connection']) ? $dbSession['connection'] :  'default'; 
-					
-					parent::__construct($tableName, $connection); 
+			$dbSession = defined('DB_SESSION') ? DB_SESSION : array();
+			$tableName = isset($dbSession['tableName']) ? $dbSession['tableName'] : 'simple-ai-session';
+			$connection = isset($dbSession['connection']) ? $dbSession['connection'] :  'default'; 
+			
+			parent::__construct($tableName, $connection);
+			
+			$this->primaryKey = 'session_id';
 		}
 		  
 	protected function __tableExists() : bool{
@@ -61,8 +63,7 @@
 	function createSession($user)
 	{ 
 		//create session
-		$id = randomString(20); 
-		$identifier = sha1(SALT . sha1($user["username"] . SALT));
+		$id = randomString(20);  
 		
 		$found = true;
 		
@@ -72,20 +73,29 @@
 			$found = isset($data[0]);
 		} 
 		
+		if(isset($user['hashed_password'])) unset($user['hashed_password']);
+		
 		$data = array(
 			"session_id" => $id,
-			"user_id" => $user["id"] 
+			"user_id" => $user["id"],
+			"user" => json_encode($user)
 		);
 		
-		$this->insert($data); 
+		$this->insert($data);
 		
-		$user["session_id"] = $id;  
+		$_SESSION['session_id'] = $id;
 		
-		Session::$SESSION->set("sessions.".$id, $user);   
+		$user["session_id"] = $id;   
 		
 		return $id;
 	}
 		
+	function destroySession($sessionId)
+	{
+		unset($_SESSION['session_id']);
+		$this->id = $sessionId;
+		$this->delete();
+	}
 		
 		
  

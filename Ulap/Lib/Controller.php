@@ -182,8 +182,7 @@
 		}
 		header("Location: " . URL . $url);
 		exit;
-	}
-	
+	} 
 	/**
 	 * default action
 	 */

@@ -7,7 +7,7 @@
 declare(strict_types=1);
 namespace Ulap;
 
- 
+require_once('Helpers' . DS. 'helper.php');
 require_once('Helpers' . DS . 'RoutePath.php');
 require_once('Helpers' . DS . 'MyRuntimeHelper.php');
 require_once('Helpers' . DS . 'MyExceptionHandler.php'); 
@@ -87,6 +87,11 @@ class Router
 		{
 			$exceptionHandler = $this->ExceptionHandler;
 			$exceptionHandler::handle($e);
+		}
+		finally
+		{  	
+			if(isset($_SESSION['debug']))
+				unset($_SESSION['debug']);
 		}
 	}
 } 

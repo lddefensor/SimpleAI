@@ -41,14 +41,14 @@ class DatabaseConnection extends \PDO {
 	 public function filterTableFieldsInArray($table, $data) 
 	 {
 		$driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
-		 
+		$key = ''; 
 		switch(strtoupper($driver)){
 			case 'SQLITE':
 				$query = 'PRAGMA table_info(`'.$table.'`)';
 				$key = 'name';
 				break;
 			case 'MYSQL':
-				$query = 'DESCRIBE ' . $table . ';';
+				$query = 'DESCRIBE `' . $table . '`;';
 				$key = 'Field';
 				break;
 			default:
@@ -58,11 +58,11 @@ class DatabaseConnection extends \PDO {
 		}
 		
 		$fields = $this->run($query);
-		
 		if($fields)
 		{
-			return array_reduce($fields, function($a, $b) use ($data){
-				$f = $b[$ket]; 
+			return array_reduce($fields, function($a, $b) use ($data, $key){ 
+				$f = $b[$key];
+				 
 				if(isset($data[$f])) {
 					$a[$f] = $data[$f];
 				}
@@ -107,7 +107,7 @@ class DatabaseConnection extends \PDO {
 	  * @param $sql STRING
 	  * @param $args MIXED
 	  */
-	 public function run($sql, $args='')
+	 public function run($sql, $args='', bool $debug = true)
 	 {
 	 	//update last query and arguments
 	 	$this->lastQuery = trim($sql);
@@ -118,6 +118,13 @@ class DatabaseConnection extends \PDO {
 		
 		try
 		{
+			if($debug)
+			{ 
+				if($args) \Ulap\Helpers\debug($args);
+				\Ulap\Helpers\debug($sql, 2, 1);
+			}
+			
+			
 			$statement = $this->prepare($this->lastQuery);
 			$response = $statement->execute($this->lastArgs);
 			
@@ -144,25 +151,35 @@ class DatabaseConnection extends \PDO {
 	 
 	 
 	 //SPECIAL FUNCTIONS here
-	 public function select($table, $where='', $fields='*', $args=''){
+	 public function select(string $table, string $where='', $fields='*', $args=''){
 	 	
-		$query = implode(" ", array("SELECT",$fields, "FROM", $table ));
+		$fields = empty($fields) ? '*' : $fields;
+		
+		$query = implode(" ", array("SELECT",$fields, "FROM", "`".$table."`" ));
 			
 		if(!empty($where))
 		{
-			$query .=  implode(" ", array("WHERE", $where));
+			$query .=  implode(" ", array(" WHERE", $where));
 		}
 		
 		$query .= ";";
 		
-		return $this->run($query, $args);  
+		\Ulap\Helpers\debug(array(
+			'table' => $table,	
+			'where' => $where,
+			'fields' => $fields, 
+			'args' => $args
+		), 3, 1);
+		\Ulap\Helpers\debug($query);
+		
+		return $this->run($query, $args, false);  
 	 }
 	 
 	 public function update($table, $data, $where='', $args='')
 	 {
 		$data = $this->filterTableFieldsInArray($data);
 		
-		$query = implode(' ', array('UPDATE', $table , 'SET'));
+		$query = implode(' ', array('UPDATE', "`".$table."`" , 'SET'));
 		
 		$args  = $this->makeSureItsArray($args);
 		
@@ -185,7 +202,13 @@ class DatabaseConnection extends \PDO {
 	 	$data = $this->filterTableFieldsInArray($table, $data);
 		$fields = array_keys($data);
 		
-		$query = 'INSERT INTO ' . $table . '(' . implode(',', $fields)  . ') VAUES (:' . implode(', :', $fields) . ')';
+		\Ulap\Helpers\debug($data);
+		
+		
+		$query = 'INSERT INTO `' . $table . '` (' . implode(',', $fields)  . ') VALUES (:' . implode(', :', $fields) . ')';
+		
+		\Ulap\Helpers\debug($data, 2, 1);
+		\Ulap\Helpers\debug($query);
 		
 		$args = array();
 		foreach($fields as $field)
@@ -193,7 +216,7 @@ class DatabaseConnection extends \PDO {
 			$args[':' . $field] = $data[$field];
 		} 
 		
-		$this->run($query, $args);
+		$this->run($query, $args, false);
 		
 		if(!$this->lastError) return $this->lastInsertId();
 		
@@ -202,7 +225,7 @@ class DatabaseConnection extends \PDO {
 	 
 	 public function delete($table, $where, $args = '')
 	 {
-	 	$query = 'DELETE FROM ' . $table . ' WHERE ' . $where . ';';
+	 	$query = 'DELETE FROM `' . $table . '` WHERE ' . $where . ';';
 		$this->run($query, $args);
 	 }
 	 

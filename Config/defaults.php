@@ -22,7 +22,10 @@ if(!defined('APPS'))
 //	define('DB_SESSION', array('tableName'=>'eg-sessions', 'connection'=>'default'));
     
 if(!defined('SESSION_HANDLER'))
-	define('SESSION_HANDLER', Ulap\Helpers\MySessionHelper::class); 
+	define('SESSION_HANDLER', Ulap\Helpers\MySessionHelper::class);
+	
+if(!defined('DEBUG'))
+	define('DEBUG', true); //allow logging of debug on view
  
 
 

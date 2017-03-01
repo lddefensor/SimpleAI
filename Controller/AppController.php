@@ -17,8 +17,14 @@
  class AppController extends Controller
  {
 	function __getSessionId(){
-		$sessionId = isset($this->data['session_id']) ? $this->data['session_id'] : (isset($this->urlParams['SID']) ? $this->urlParams['SID'] : null);
-		return $sessionId;
+		
+		if(isset($this->data['session_id'])) return $this->data['session_id'];
+		
+		if(isset($this->urlParams['SID'])) return $this->urlParams['SID'];
+		
+		if(isset($_SESSION['session_id'])) return $_SESSION['session_id'];
+		
+		return null;
 	}
 	
 	public function beforeMethodCall(){
@@ -32,7 +38,7 @@
 					return $this->redirect('/login');
 			}
 			
-			$session =	$this->Sessions->findFirst(array("conditions"=>array("session_id" => $sessionId))); 
+			$session =	$this->Session->findFirst(array("conditions"=>array("session_id" => $sessionId))); 
 	}
 	
 	

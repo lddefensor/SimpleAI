@@ -134,7 +134,7 @@ class DatabaseConnection extends \PDO {
 		catch (\PDOException $e)
 		{
 			$this->lastError = array(
-				'message' => $e->getMesasge(),
+				'message' => $e->getMessage(),
 				'code' => $e->getCode()
 			);
 			

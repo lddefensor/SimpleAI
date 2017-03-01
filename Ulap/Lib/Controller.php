@@ -7,11 +7,13 @@
  
  require_once('Helpers' .DS. 'MyRuntimeHelper.php');
  require_once('Helpers' .DS. 'MySessionHelper.php');
+ require_once('Helpers' . DS . 'HTMLHelper.php');
  require_once('Model.php');
 	
  use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
  use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
  use Ulap\Helpers\MySessionHelper as MySessionHelper;
+ use Ulap\Helpers\HTMLHelper as HTMLHelper;
  
  use Ulap\Model as Model;
  
@@ -19,7 +21,8 @@
  {
 	public $models = array();
 	public $autoRender = true;
-	public $viewData = array(); 
+	public $viewData = array();
+	public $errors = array();
 	
 	public $currentMethod = null;
 	
@@ -125,7 +128,7 @@
 	 */
 	public function render(){
 		
-		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS;
+		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS; 
 
 		if(!file_exists($dir) || !file_exists($dir.$this->currentMethod.".html"))
 		{
@@ -134,7 +137,12 @@
 		
 		$this->beforeRenderView();
 
-		if(sizeof($this->viewData)) extract ($this->viewData); 
+		if(sizeof($this->viewData)) extract ($this->viewData);
+		
+		if($this->__hasErrors())
+		{
+			HTMLHelper::$hasErrors = $this->errors; 
+		}
 
 		include_once(ROOT.DS."Layouts".DS."top.html");
 
@@ -152,14 +160,28 @@
 		
 	}
 	
+	
+	/**
+	 * checks if current error has values
+	 */
+	public function __hasErrors() : bool {
+		return sizeof(array_keys($this->errors)) > 0 ;
+	}
+	
 	/**
 	 *redirect allows the controller to forfeit method execution and go to another action
 	 *
 	 */
 	public function redirect($url)
-	{  
-			header("Location: " . URL . $url);
-			exit;
+	{
+		//check for existing 'error' and save to session
+		if($this->__hasErrors())
+		{
+			$_SESSION['errors'] = $this->errors;
+			$this->errors = array();
+		}
+		header("Location: " . URL . $url);
+		exit;
 	}
 	
 	/**

@@ -26,7 +26,9 @@ class Router
 	
 	public function __construct(string $queryString)
 	{
-		$this->path = new Helpers\RouterPath($queryString);   
+		//initialize PHP SESSION
+		session_start(); 
+		$this->path = new Helpers\RouterPath($queryString); 
 	}
 	
 	protected function __instantiateController(){
@@ -59,6 +61,13 @@ class Router
 		try
 		{ 
 			$controller = $this->__instantiateController();
+			
+			if(isset($_SESSION['errors']))
+			{
+				$controller->errors = $_SESSION['errors'];
+				unset($_SESSION['errors']);
+			}
+			
 			$controller->beforeMethodCall();
 			
 			$method = $this->path->getMethod();

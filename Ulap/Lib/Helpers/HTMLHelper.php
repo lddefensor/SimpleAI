@@ -5,7 +5,8 @@
  * (This helper class is incomplete as i build it as i use it) 
  * THe layout is based on twitter bootstrap's layout
  */
- 
+
+namespace Ulap\Helpers;
 
 class HTMLHelper 
 {

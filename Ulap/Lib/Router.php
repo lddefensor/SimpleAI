@@ -52,15 +52,19 @@ class Router
 	/** 
 	 * initializes the application
 	 * throws MyRuntimeException
+	 * throws RedirectException if the method calls a redirect
 	 **/
 	public function route()
 	{
 		try
 		{ 
-			$controller = $this->__instantiateController(); 
+			$controller = $this->__instantiateController();
+			$controller->Router = $this;
 			$controller->beforeMethodCall();
 			
-			$method = $this->path->getMethod(); 
+			$method = $this->path->getMethod();
+			
+			echo $method;
 			
 			if(strstr($method, '__') !== false || array_search($method, $controller->privateMethods) !== false)
 				throw MyRuntimeException::AttemptToCallPrivateMethods($controller->name, $method);
@@ -78,8 +82,28 @@ class Router
 			$exceptionHandler = $this->ExceptionHandler;
 			$exceptionHandler::handle($e);
 		}
+		catch(RedirectException $e)
+		{  
+			$this->path = new Helpers\RouterPath($this->redirectURL); 
+			unset($this->redirectURL);
+			if(!isset($this->redirected))
+			{
+				$this->redirected  = true;
+				$this->route();
+			}
+			else
+			{ 
+				$exceptionHandler = $this->ExceptionHandler;
+				$exceptionHandler::handle(new MyRuntimeException("Only one redirect is allowed"));
+			}
+		}
 	}
 } 
 
+
+class RedirectException extends \Exception {
+	
+	
+}
  
  // END OF FILE 

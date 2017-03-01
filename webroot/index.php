@@ -1,7 +1,7 @@
 <?php 
 
-error_reporting(E_ALL); // TODO Change to 0 on production MODE
-ini_set("display_errors", "on"); // TODO Change to off on production mode
+// error_reporting(E_ALL); // TODO Change to 0 on production MODE
+// ini_set("display_errors", "on"); // TODO Change to off on production mode
 
 /**
  * Entry point of Application
@@ -47,6 +47,18 @@ $MyRouter = new Ulap\Router($queryString);
 
 // TODO //To override, should extend the MyExceptionHandler Class
 $MyRouter->ExceptionHandler = new ApiErrorHandler();
+
+//** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error 
+register_shutdown_function(function(){
+	$error = error_get_last();
+	if($error)
+	{
+		// var_dump($error);
+		 $exception = new Ulap\Helpers\MyRuntimeException($error['message']);
+		 $handler = new ApiErrorHandler();
+		 $handler->handle($exception);
+	} 
+});
 
 $MyRouter->route();   
 

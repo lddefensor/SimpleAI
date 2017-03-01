@@ -8,7 +8,7 @@
  require_once('Helpers' .DS. 'MyRuntimeHelper.php');
  require_once('Helpers' .DS. 'MySessionHelper.php');
  require_once('Model.php');
- 
+	
  use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
  use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
  use Ulap\Helpers\MySessionHelper as MySessionHelper;
@@ -17,9 +17,11 @@
  
  class Controller 
  {
- 	public $models = array();
+	public $models = array();
 	public $autoRender = true;
-	public $viewData = array(); 
+	public $viewData = array();
+	public $Router; 
+	
 	public $currentMethod = null;
 	
 	public $ViewDir = 'View';
@@ -31,7 +33,9 @@
 		'importModel',
 		'render',
 		'beforeRenderView',
-		'afterRenderView'
+		'afterRenderView',
+		'useSession',
+		'redirect'
 	);
 	
 	
@@ -69,8 +73,7 @@
 		$model = ucfirst($model) ;
 		
 		if(isset($this->$model) && $reimport === false)
-			return $this->$model;
-		
+			return $this->$model; 
 		
 		$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
 		$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
@@ -80,9 +83,12 @@
 	}
 	
 	function useSession(bool $use){
+		 if(!defined('SESSION_HANDLER'))
+				throw new MyRuntimeException('Undefined Session Handler');
 		
-		$session = new MySessionHelper();
-		
+			$SessionHandler = SESSION_HANDLER;
+			 
+			$this->Session = new $SessionHandler(); 
 	}
 	
 	/**
@@ -145,6 +151,16 @@
 			http_response_code(200);
 		} 
 		
+	}
+	
+	/**
+	 *redirect allows the controller to forfeit method execution and go to another action
+	 *
+	 */
+	public function redirect($url)
+	{ 
+			$this->Router->redirectURL  = $url;
+			throw new RedirectException();
 	}
 	
 	/**

@@ -43,16 +43,32 @@
 		try
 		{ 	
 			foreach($this->models as $model){
-				$model = ucfirst($model) ;
-				$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
-				$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
-				$this->$model = $runtime->instantiateClass(); 
+				$this->importModel($model);	
 			}
 		}
 		catch (\Exception $e)
 		{ 
 			throw new MyRuntimeException('Model Error: '. $e->getMessage(), $e->getCode());
 		}
+	}
+	
+	/**
+	 * allows on the fly creation of model class with name $model
+	 */
+	function importModel(string $model, bool $reimport = false)
+	{
+		
+		$model = ucfirst($model) ;
+		
+		if(isset($this->$model) && $reimport === false)
+			return $this->$model;
+		
+		
+		$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
+		$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
+		$this->$model = $runtime->instantiateClass(); 
+		
+		return $this->$model;
 	}
 	
 	/**

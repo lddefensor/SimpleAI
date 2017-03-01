@@ -9,6 +9,7 @@
  require_once('Model.php');
  
  use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
+ use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
  use Ulap\Model as Model;
  
  class Controller 
@@ -48,8 +49,9 @@
 				$this->$model = $runtime->instantiateClass(); 
 			}
 		}
-		catch (MyRuntimeException $e)
+		catch (\Exception $e)
 		{
+			var_dump($e->getMessage());
 			throw new MyRuntimeException('Model Error: '. $e->getMessage(), $e->getCode());
 		}
 	}

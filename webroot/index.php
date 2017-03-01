@@ -46,7 +46,7 @@ $queryString = urldecode(str_replace(URL.'/' , '', $_SERVER["REQUEST_URI"]));
 $MyRouter = new Ulap\Router($queryString); 
 
 // TODO //To override, should extend the MyExceptionHandler Class
-$MyRouter->ExceptionHandler = new ApiErrorHandler();
+$MyRouter->ExceptionHandler = new App\ErrorHandler();
 
 $MyRouter->route();   
 

@@ -3,10 +3,12 @@
 namespace Ulap;
  
 require_once('Helpers'.DS.'MyRuntimeHelper.php');
+require_once('Helpers'.DS.'MyRuntimeException.php');
 require_once('DatabaseConnection.php');  
 require_once(ROOT.DS.'Config'.DS.'database.php');
 
 use App\DBConfig as DBConfig;
+use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
 
 class Model {
 	
@@ -24,18 +26,22 @@ class Model {
 	function __construct($name = null, $connection = null )
 	{
 		if(!$connection) $connection = $this->connection;
-		if(!$name) $this->name = get_class($this);
+		if(!$name) $name = get_class($this);
+		if(!$this->name) $this->name = $name;
 		
-		if(!$connection) $this->connection = 'default'; 
+		if(!$connection) $connection = 'default'; 
+		if(!$this->connection) $this->connection = $connection;
 		
-		if(!$this->tableName) $this->tableName = strtolower($this->name);
+		if(!$this->tableName) $this->tableName = strtolower($this->name); 
+		
 		$this->_tableName = $this->tableName;
 		
 		$this->__initializeConnection();
 		
-		if(!$this->__tableExists())
+		$exists = $this->__tableExists(); 
+		if(!$exists)
 		{
-			throw new \Exception('Table ' . $this->tableName . ' does not exists ');
+			throw new MyRuntimeException('Table ' . $this->tableName . ' does not exists ', 4001);
 		}
 		
 		//initialize fields
@@ -55,19 +61,20 @@ class Model {
 	 */
 	protected function __initializeConnection(){
 		$this->dbConfig = new DBConfig();
-		$config = $this->connection;
+		$config = $this->connection;  
 		
 		if(!isset($this->dbConfig->$config))
-			throw new \Exception('Missing Database Configuration '. $config .' in database.php');
+			throw new MyRuntimeException('Missing Database Configuration '. $config .' in database.php', 4002);
 		
 		$dbConn = $this->__createDBConnection($this->dbConfig->$config);
 		$this->dbConnection = $dbConn; 
 	}
 	
-	protected function __tableExists(){
-		$exists = $this->dbConnection->run('SHOW TABLES LIKE \''. $this->tableName. '\';'); 
-		
-		return $exists;
+	protected function __tableExists() : bool{
+		$query =  'SHOW TABLES LIKE \''. $this->tableName. '\';'; 
+		$exists = $this->dbConnection->run($query); 
+		var_dump($query);
+		return $exists ? true : false;
 	}
 	
 	protected function __getFields(){

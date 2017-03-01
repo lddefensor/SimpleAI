@@ -48,6 +48,18 @@ $MyRouter = new Ulap\Router($queryString);
 // TODO //To override, should extend the MyExceptionHandler Class
 $MyRouter->ExceptionHandler = new App\ErrorHandler();
 
+//** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error 
+register_shutdown_function(function(){
+	$error = error_get_last();
+	if($error)
+	{
+		// var_dump($error);
+		 $exception = new Ulap\Helpers\MyRuntimeException($error['message']);
+		 $handler = new App\ErrorHandler();
+		 $handler->handle($exception);
+	} 
+});
+
 $MyRouter->route();   
 
 /** END OF FILE **/

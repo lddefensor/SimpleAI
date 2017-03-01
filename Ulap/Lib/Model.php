@@ -35,7 +35,7 @@ class Model {
 		
 		if(!$this->__tableExists())
 		{
-			throw new Exception('Table ' . $this->tableName . ' does not exists ');
+			throw new \Exception('Table ' . $this->tableName . ' does not exists ');
 		}
 		
 		//initialize fields

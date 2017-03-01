@@ -9,7 +9,7 @@ use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
 class ApiErrorHandler extends MyExceptionHandler
 {
 	
-	public function handle(MyRuntimeException $exception){
+	public static function handle(MyRuntimeException $exception){
 		$error = array('success'=>false, 'error'=>$exception->getMessage(), 'code'=>$exception->getCode());
 	
 		echo json_encode($error);

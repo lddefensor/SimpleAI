@@ -9,14 +9,14 @@ namespace Ulap\Helpers;
 class MyExceptionHandler
 {
 	
-	public function handle(MyRuntimeException $exception)
+	public static function Handle(MyRuntimeException $exception)
 	{
 		$title = 'Runtime Exception';
 		$code = $exception->getCode(); 
 		$message = $exception->getMessage();
 		
 		include(APP_ROOT.DS.'Lib'.DS.'Layouts'.DS.'error.html');
-	} 
+	}  
 }
 
 // END OF FILE 

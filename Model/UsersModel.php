@@ -1,11 +1,12 @@
 <?php
 
 namespace App;
+require_once 'Appmodel.php';
 
-use Ulap\Model as Model;
+use App\AppModel as AppModel;
 
-class Users extends Model{
+class Users extends AppModel{
 
-	var $tableName = 'red_users';
+	var $tableName = 'eg-users';
 	 
 }

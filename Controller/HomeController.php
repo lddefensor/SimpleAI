@@ -8,18 +8,20 @@
  
  namespace App;
  
- use Ulap\Controller as Controller;
+ require_once 'AppController.php';
  
- class HomeController extends Controller
+ use App\AppController as AppController;
+ 
+ class HomeController extends AppController
  {
  	
 	var $models = array('Users');
 	
-	
-	public function landing(string $type){
+	public function index(){ 
 		
-		return $type;
-	} 
+	}
+	
+	
  }
 
  // END OF FILE 

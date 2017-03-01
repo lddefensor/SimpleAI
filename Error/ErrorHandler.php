@@ -16,7 +16,9 @@ class ErrorHandler extends MyExceptionHandler
 {
 	
 	public function handle(MyRuntimeException $exception){
-		
+		include ROOT . DS. 'Layouts' . DS . 'top.html';
+		include ROOT . DS. 'Layouts' . DS . 'error.html';
+		include ROOT . DS. 'Layouts' . DS . 'bottom.html';
 	}
 }
 

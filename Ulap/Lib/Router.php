@@ -30,7 +30,7 @@ class Router
 	}
 	
 	protected function __instantiateController(){
-		$className = ucfirst($this->path->getController()) . 'Controller'; 
+		$className = ucfirst($this->path->getController()) . 'Controller';  
 		
 		$filePath = ROOT.DS.'Controller'. DS. $className. '.php';
 		
@@ -38,7 +38,7 @@ class Router
 		$this->runtime->instantiateClass(array($this));
 		
 		$controller = $this->runtime->instance;
-		
+		$controller->currentMethod = $this->path->getMethod();
 		$controller->data = $this->path->getData();
 		$controller->urlParams = $this->path->getURLParams();
 		
@@ -57,7 +57,7 @@ class Router
 	{
 		try
 		{ 
-			$controller = $this->__instantiateController();
+			$controller = $this->__instantiateController(); 
 			$controller->beforeMethodCall();
 			
 			$method = $this->path->getMethod(); 
@@ -79,8 +79,7 @@ class Router
 			$exceptionHandler->handle($e); 
 		}
 	}
-}
-
+} 
 
  
  // END OF FILE 

@@ -18,5 +18,9 @@ if(!defined('APPS'))
 	define('APPS', array('admin'));
 
 
+if(!define('SESSION_HANDLING'))
+	define('SESSION_HANDLING', 'xDB');
+ 
+
 
 // END OF FILE 

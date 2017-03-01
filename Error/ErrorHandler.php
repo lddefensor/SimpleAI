@@ -15,7 +15,7 @@ use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
 class ErrorHandler extends MyExceptionHandler
 {
 	
-	public static function handle(MyRuntimeException $exception){
+	public static function handle(MyRuntimeException $exception){ 
 		$title = 'Error!';
 		$message = $exception->getMessage();
 		 

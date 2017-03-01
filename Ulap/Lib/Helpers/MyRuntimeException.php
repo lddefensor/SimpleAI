@@ -7,7 +7,14 @@
  
 namespace Ulap\Helpers;
 
-class MyRuntimeException extends \Exception{ 
+class MyRuntimeException extends \Exception{
+	
+	public static function UndefinedSessionHandling($type){
+		
+		return new MyRuntimeException(
+			'Unable to define session handling of type: ' . $type .'. Not yet supported',
+			3001);
+	} 
 	
 	public static function ViewFolderNotFound($className, $method)
 	{

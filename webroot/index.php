@@ -46,17 +46,20 @@ $queryString = urldecode(str_replace(URL.'/' , '', $_SERVER["REQUEST_URI"]));
 $MyRouter = new Ulap\Router($queryString); 
 
 // TODO //To override, should extend the MyExceptionHandler Class
-$MyRouter->ExceptionHandler = new App\ErrorHandler();
+$MyRouter->ExceptionHandler = App\ErrorHandler::class;
 
-//** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error 
+//** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error  
+set_error_handler(function($code, $message){
+	// echo 'lorelie';
+	App\ErrorHandler::handle(new Ulap\Helpers\MyRuntimeException($message, $code));
+});
+
 register_shutdown_function(function(){
 	$error = error_get_last(); 
+	// echo 'lorelie';
 	if($error)
 	{
-		// var_dump($error);
-		 $exception = new Ulap\Helpers\MyRuntimeException($error['message']);
-		 $handler = new App\ErrorHandler();
-		 $handler->handle($exception);
+		App\ErrorHandler::handle(new Ulap\Helpers\MyRuntimeException($error['message'], 9001));
 	} 
 });
 

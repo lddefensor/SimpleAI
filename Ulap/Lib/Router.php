@@ -76,7 +76,7 @@ class Router
 		catch(MyRuntimeException $e)
 		{
 			$exceptionHandler = $this->ExceptionHandler;
-			$exceptionHandler->handle($e); 
+			$exceptionHandler::handle($e);
 		}
 	}
 } 

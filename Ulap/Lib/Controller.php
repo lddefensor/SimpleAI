@@ -5,11 +5,14 @@
  */
  namespace Ulap;
  
- require_once('Helpers'.DS.'MyRuntimeHelper.php');
+ require_once('Helpers' .DS. 'MyRuntimeHelper.php');
+ require_once('Helpers' .DS. 'MySessionHelper.php');
  require_once('Model.php');
  
  use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
  use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
+ use Ulap\Helpers\MySessionHelper as MySessionHelper;
+ 
  use Ulap\Model as Model;
  
  class Controller 
@@ -74,6 +77,12 @@
 		$this->$model = $runtime->instantiateClass(); 
 		
 		return $this->$model;
+	}
+	
+	function useSession(bool $use){
+		
+		$session = new MySessionHelper();
+		
 	}
 	
 	/**

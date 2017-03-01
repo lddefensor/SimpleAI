@@ -35,7 +35,7 @@ class Model {
 		
 		if(!$this->__tableExists())
 		{
-			throw new Exception('Table ' . $this->tableName . ' does not exists ');
+			throw new \Exception('Table ' . $this->tableName . ' does not exists ');
 		}
 		
 		//initialize fields
@@ -58,7 +58,7 @@ class Model {
 		$config = $this->connection;
 		
 		if(!isset($this->dbConfig->$config))
-			throw new Exception('Missing Database Configuration '. $config .' in database.php');
+			throw new \Exception('Missing Database Configuration '. $config .' in database.php');
 		
 		$dbConn = $this->__createDBConnection($this->dbConfig->$config);
 		$this->dbConnection = $dbConn; 

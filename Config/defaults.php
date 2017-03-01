@@ -18,8 +18,11 @@ if(!defined('APPS'))
 	define('APPS', array('admin'));
 
 
-if(!defined('SESSION_HANDLING'))
-	define('SESSION_HANDLING', 'xDB');
+//if(!defined('DB_SESSION'))
+//	define('DB_SESSION', array('tableName'=>'eg-sessions', 'connection'=>'default'));
+    
+if(!defined('SESSION_HANDLER'))
+	define('SESSION_HANDLER', Ulap\Helpers\MySessionHelper::class); 
  
 
 

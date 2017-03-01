@@ -23,6 +23,7 @@
 	public $autoRender = true;
 	public $viewData = array();
 	public $errors = array();
+	public $isJson = false;
 	
 	public $currentMethod = null;
 	
@@ -126,7 +127,7 @@
 	/**
 	 * passess any of the data inside viewData in the template
 	 */
-	public function render(){
+	public function render(){ 
 		
 		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS; 
 

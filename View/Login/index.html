@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container hide" id="loginContainer">
 	<div class="col-md-4 col-md-offset-4 center-form">
 		<h3>Login to Admin Panel</h3>
 		<div class="well">
@@ -6,8 +6,71 @@
 			  
 	 		  <?php echo Ulap\Helpers\HTMLHelper::input("username") ?>
 			 <?php echo  Ulap\Helpers\HTMLHelper::input("passwrd", "Password", "password") ?>
+			 <input type='hidden' name='visitor_id' id='visitor_id'/>
 			  <button type="submit" class="btn btn-primary">Login</button>
 			</form>
 		</div>
 	</div>
 </div> 
+
+<h1 id="loader" class="text-center"><br /><br />
+	<i class="fa fa-spinner"></i> Loading...
+</h1>
+
+<script src="js/makeRequest.js"></script>
+
+<script>
+	var loginContainer = document.getElementById('loginContainer');
+	var loader = document.getElementById('loader');
+	var vInput = document.getElementById('visitor_id');
+	loginContainer.classList.add('hide');
+	loader.classList.remove('hide');
+	
+	var visitorId = localStorage.getItem('vkey-eg');
+	var data = {visitor_id: visitorId};
+	
+	function enable(){
+		loginContainer.classList.remove('hide');
+		loader.classList.add('hide');
+	}
+	
+	if(visitorId)
+	{
+		vInput.value = visitorId;
+	}
+	
+	if(navigator)
+	{
+		data.app = navigator.userAgent.split(')').reverse()[0].match(/(?!Gecko|Version|[A-Za-z]+?Web[Kk]it)[A-Z][a-z]+/g)[0];
+		data.client = navigator.userAgent;
+		
+		getRequest('https://jsonip.com/').then(function(result){ 
+			data.ip = result.ip;
+			
+			postRequest('<?php echo URL ?>/visitor/check', data).then(function(result){ 
+				
+				if(result.success)
+				{
+					//success response
+					vInput.value = result.visitor_id;
+					
+					if(result.visitor_id)
+						localStorage.setItem('vkey-eg', result.visitor_id);
+					else localStorage.removeItem('vkey-eg');
+					
+				}
+				enable();
+			});
+			
+			
+		}).catch(function(e){
+			enable(); 
+		});
+	}
+	else
+	{
+		enable();
+	}
+	
+	
+</script>

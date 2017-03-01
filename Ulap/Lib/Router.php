@@ -79,8 +79,13 @@ class Router
 			
 			$controller->afterMethodCall($result);
 			
-			//renders the method
-			if($controller->autoRender)
+			if($controller->isJson)
+			{
+				header('Content-Type: application/json');
+				echo json_encode($result); 
+			}
+			//renders the method 
+			else if($controller->autoRender)
 				$controller->render();
 		}
 		catch(MyRuntimeException $e)

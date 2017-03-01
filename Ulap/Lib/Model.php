@@ -173,7 +173,7 @@ class Model {
 		
 		if(isset($options["fields"]))
 		{ 
-			return $dbConnection->select($tableName, $where, "", $options['fields']);
+			return $dbConnection->select($tableName, $where,  $options['fields']);
 			
 		} 
 		

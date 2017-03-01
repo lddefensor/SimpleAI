@@ -1,6 +1,6 @@
 <?php
 
-require_once ROOT.DS.'ApiErrorHandler.php';
+require_once ROOT.DS. 'Error'. DS . 'ErrorHandler.php';
 
 if(!defined('URL')) 
 	define("URL", '/SimpleAI');  

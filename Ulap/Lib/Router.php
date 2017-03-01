@@ -64,8 +64,6 @@ class Router
 			
 			$method = $this->path->getMethod();
 			
-			echo $method;
-			
 			if(strstr($method, '__') !== false || array_search($method, $controller->privateMethods) !== false)
 				throw MyRuntimeException::AttemptToCallPrivateMethods($controller->name, $method);
 			

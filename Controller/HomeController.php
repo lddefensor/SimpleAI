@@ -13,9 +13,7 @@
  use App\AppController as AppController;
  
  class HomeController extends AppController
- {
- 	
-	var $models = array('Users');
+ { 
 	
 	public function index(){ 
 		

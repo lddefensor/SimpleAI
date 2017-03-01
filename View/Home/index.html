@@ -1,0 +1,18 @@
+<main-nav>
+	<ul class="nav navbar-nav"> 
+    	<li><a href="#/listings">Listings</a></li> 
+   	</ul> 
+   	<ul class="nav navbar-nav navbar-right">
+   		<li><a href="/estategrabber/api/login/logout">Logout</a></li>
+   	</ul>
+</main-nav>
+
+<div id="main-content" class="row"> 
+	<div id="sidemenu" ng-class="menuOpen ? 'col-sm-2' : 'sr-only'"><dashboard-menu></dashboard-menu></div>
+	<div id="content" ui-view ng-class="menuOpen ? 'col-xs-10' : 'col-xs-12'"></div>
+</div>
+<script data-main="../js/home.js" src="../js/libs/require.js"></script>
+<script>
+	var sessId = "<?php echo $sessionId; ?>"; 
+	var URL = "/estategrabber/";
+</script>

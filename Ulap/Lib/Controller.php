@@ -19,8 +19,7 @@
  {
 	public $models = array();
 	public $autoRender = true;
-	public $viewData = array();
-	public $Router; 
+	public $viewData = array(); 
 	
 	public $currentMethod = null;
 	
@@ -158,9 +157,9 @@
 	 *
 	 */
 	public function redirect($url)
-	{ 
-			$this->Router->redirectURL  = $url;
-			throw new RedirectException();
+	{  
+			header("Location: " . URL . $url);
+			exit;
 	}
 	
 	/**

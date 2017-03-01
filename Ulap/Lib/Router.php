@@ -59,7 +59,6 @@ class Router
 		try
 		{ 
 			$controller = $this->__instantiateController();
-			$controller->Router = $this;
 			$controller->beforeMethodCall();
 			
 			$method = $this->path->getMethod();
@@ -80,28 +79,8 @@ class Router
 			$exceptionHandler = $this->ExceptionHandler;
 			$exceptionHandler::handle($e);
 		}
-		catch(RedirectException $e)
-		{  
-			$this->path = new Helpers\RouterPath($this->redirectURL); 
-			unset($this->redirectURL);
-			if(!isset($this->redirected))
-			{
-				$this->redirected  = true;
-				$this->route();
-			}
-			else
-			{ 
-				$exceptionHandler = $this->ExceptionHandler;
-				$exceptionHandler::handle(new MyRuntimeException("Only one redirect is allowed"));
-			}
-		}
 	}
 } 
-
-
-class RedirectException extends \Exception {
-	
-	
-}
+ 
  
  // END OF FILE 

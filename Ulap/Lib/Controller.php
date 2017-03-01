@@ -17,9 +17,6 @@
  	public $models = array();
 	public $autoRender = true;
 	public $viewData = array(); 
-	public $currentMethod = null;
-	
-	private $ViewDir = 'View'; 
 	
 	public $privateMethods = array(
 		'invokeMethod',
@@ -33,10 +30,8 @@
 	
 	
 	public function __construct()
-	{
-		$name = get_class($this); 
-		$name = substr($name, strrpos($name, '\\') + 1);
-		$this->name = $name == 'Controller' ? $name : str_replace('Controller', '', $name); 
+	{ 
+		$this->name = get_class($this) == 'Controller' ? get_class($this) : str_replace('Controller', '', __CLASS__); 
 	
 		$this->__initializeModels();
 	}
@@ -48,16 +43,27 @@
 		try
 		{ 	
 			foreach($this->models as $model){
-				$model = ucfirst($model) ;
-				$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
-				$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
-				$this->$model = $runtime->instantiateClass(); 
+				$this->importModel($model);	
 			}
 		}
 		catch (\Exception $e)
 		{ 
 			throw new MyRuntimeException('Model Error: '. $e->getMessage(), $e->getCode());
 		}
+	}
+	
+	function importModel($model, bool $reimport = false)
+	{
+		
+		$model = ucfirst($model) ;
+		
+		if(isset($this->$model) && $reimport === false)
+			return $this->$model;
+		
+		
+		$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
+		$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
+		$this->$model = $runtime->instantiateClass(); 
 	}
 	
 	/**
@@ -94,30 +100,7 @@
 	 */
 	public function render(){
 		
-		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS;
-
-		if(!file_exists($dir) || !file_exists($dir.$this->currentMethod.".html"))
-		{
-			throw MyRuntimeException::ViewFolderNotFound($this->name, $this->currentMethod);
-		}   
-		
-		$this->beforeRenderView();
-
-		if(sizeof($this->viewData)) extract ($this->viewData); 
-
-		include_once(ROOT.DS."Layouts".DS."top.html");
-
-		include_once($dir.$this->currentMethod.".html");
-
-		include_once(ROOT.DS."Layouts".DS."bottom.html");
-		
-		$this->afterRenderView();
-		
-		if(!headers_sent())
-		{
-			header('Access-Control-Allow-Origin: *');
-			http_response_code(200);
-		}
+		//
 		
 		
 	}

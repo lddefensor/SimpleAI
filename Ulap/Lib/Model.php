@@ -24,9 +24,11 @@ class Model {
 	function __construct($name = null, $connection = null )
 	{
 		if(!$connection) $connection = $this->connection;
-		if(!$name) $this->name = get_class($this);
+		if(!$name) $name= get_class($this);
+		if(!$this->name) $this->name = $name;
 		
-		if(!$connection) $this->connection = 'default'; 
+		if(!$connection) $connection = 'default';
+		if(!$this->connection) $this->connection = $connection;
 		
 		if(!$this->tableName) $this->tableName = strtolower($this->name);
 		$this->_tableName = $this->tableName;

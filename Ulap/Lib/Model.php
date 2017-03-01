@@ -72,8 +72,7 @@ class Model {
 	
 	protected function __tableExists() : bool{
 		$query =  'SHOW TABLES LIKE \''. $this->tableName. '\';'; 
-		$exists = $this->dbConnection->run($query); 
-		var_dump($query);
+		$exists = $this->dbConnection->run($query);  
 		return $exists ? true : false;
 	}
 	

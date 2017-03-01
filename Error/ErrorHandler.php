@@ -16,6 +16,7 @@ class ErrorHandler extends MyExceptionHandler
 {
 	
 	public static function handle(MyRuntimeException $exception){ 
+		 
 		$title = 'Error!';
 		$message = $exception->getMessage();
 		 
@@ -24,11 +25,18 @@ class ErrorHandler extends MyExceptionHandler
 		include ROOT . DS. 'Layouts' . DS . 'error.html';
 		include ROOT . DS. 'Layouts' . DS . 'bottom.html';
 	}
+	
+	public static function handleError($error){
+		
+		$title = 'Error!';
+		$code = 9001;
+		$message = array('MESSAGE: ' . $error['message'], 'FILE: '. $error['file'], 'LINE: '. $error['line']);
+		$message = implode("\n", $message);
+		include ROOT . DS. 'Layouts' . DS . 'top.html';
+		include ROOT . DS. 'Layouts' . DS . 'error.html';
+		include ROOT . DS. 'Layouts' . DS . 'bottom.html';
+	}
 }
-
-
-
-/** END OF FILE **/
  
  
  /** END OF FILE **/

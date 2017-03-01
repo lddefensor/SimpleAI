@@ -18,7 +18,7 @@ if(!defined('APPS'))
 	define('APPS', array('admin'));
 
 
-if(!define('SESSION_HANDLING'))
+if(!defined('SESSION_HANDLING'))
 	define('SESSION_HANDLING', 'xDB');
  
 

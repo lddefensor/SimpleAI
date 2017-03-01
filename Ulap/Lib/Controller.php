@@ -17,6 +17,7 @@
  	public $models = array();
 	public $autoRender = true;
 	public $viewData = array(); 
+	public $currentMethod = null;
 	
 	public $privateMethods = array(
 		'invokeMethod',
@@ -31,7 +32,9 @@
 	
 	public function __construct()
 	{ 
-		$this->name = get_class($this) == 'Controller' ? get_class($this) : str_replace('Controller', '', __CLASS__); 
+		$name = get_class($this); 
+		$name = substr($name, strrpos($name, '\\') + 1);
+		$this->name = $name == 'Controller' ? $name : str_replace('Controller', '', $name); 
 	
 		$this->__initializeModels();
 	}
@@ -52,7 +55,10 @@
 		}
 	}
 	
-	function importModel($model, bool $reimport = false)
+	/**
+	 * allows on the fly creation of model class with name $model
+	 */
+	function importModel(string $model, bool $reimport = false)
 	{
 		
 		$model = ucfirst($model) ;
@@ -64,6 +70,8 @@
 		$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
 		$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
 		$this->$model = $runtime->instantiateClass(); 
+		
+		return $this->$model;
 	}
 	
 	/**
@@ -95,12 +103,36 @@
 		
 	}
 	
+	
 	/**
 	 * passess any of the data inside viewData in the template
 	 */
 	public function render(){
 		
-		//
+		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS;
+
+		if(!file_exists($dir) || !file_exists($dir.$this->currentMethod.".html"))
+		{
+			throw MyRuntimeException::ViewFolderNotFound($this->name, $this->currentMethod);
+		}   
+		
+		$this->beforeRenderView();
+
+		if(sizeof($this->viewData)) extract ($this->viewData); 
+
+		include_once(ROOT.DS."Layouts".DS."top.html");
+
+		include_once($dir.$this->currentMethod.".html");
+
+		include_once(ROOT.DS."Layouts".DS."bottom.html");
+		
+		$this->afterRenderView();
+		
+		if(!headers_sent())
+		{
+			header('Access-Control-Allow-Origin: *');
+			http_response_code(200);
+		}
 		
 		
 	}

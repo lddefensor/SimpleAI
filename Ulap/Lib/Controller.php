@@ -50,8 +50,7 @@
 			}
 		}
 		catch (\Exception $e)
-		{
-			var_dump($e->getMessage());
+		{ 
 			throw new MyRuntimeException('Model Error: '. $e->getMessage(), $e->getCode());
 		}
 	}

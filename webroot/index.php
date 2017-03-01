@@ -1,7 +1,7 @@
 <?php 
 
-error_reporting(E_ALL); // TODO Change to 0 on production MODE
-ini_set("display_errors", "on"); // TODO Change to off on production mode
+// error_reporting(E_ALL); // TODO Change to 0 on production MODE
+// ini_set("display_errors", "on"); // TODO Change to off on production mode
 
 /**
  * Entry point of Application
@@ -50,7 +50,7 @@ $MyRouter->ExceptionHandler = new App\ErrorHandler();
 
 //** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error 
 register_shutdown_function(function(){
-	$error = error_get_last();
+	$error = error_get_last(); 
 	if($error)
 	{
 		// var_dump($error);

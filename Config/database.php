@@ -5,7 +5,7 @@ namespace App;
 class DBConfig
 {
 	var $default = array(
-		"name" => "redpropertyonline",
+		"name" => "estate-grabber",
 		"host" => "localhost",
 		"user" => "root",
 		"password" => "root",

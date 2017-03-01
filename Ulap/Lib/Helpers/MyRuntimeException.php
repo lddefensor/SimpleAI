@@ -9,6 +9,13 @@ namespace Ulap\Helpers;
 
 class MyRuntimeException extends \Exception{ 
 	
+	public static function ViewFolderNotFound($className, $method)
+	{
+		return new MyRuntimeException(
+			'View folder not found for '. $className . ' - '. $method,
+			2001);
+	}
+	
 	public static function InsufficientParameters($className, $method)
 	{
 		return new MyRuntimeException(

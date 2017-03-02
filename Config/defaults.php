@@ -1,6 +1,6 @@
 <?php
 
-require_once ROOT.DS.'ApiErrorHandler.php';
+require_once ROOT.DS. 'Error'. DS . 'ErrorHandler.php';
 
 if(!defined('URL')) 
 	define("URL", '/SimpleAI');  
@@ -17,6 +17,16 @@ if(!defined('MULTIPLE_APPS'))
 if(!defined('APPS'))
 	define('APPS', array('admin'));
 
+
+//if(!defined('DB_SESSION'))
+//	define('DB_SESSION', array('tableName'=>'eg-sessions', 'connection'=>'default'));
+    
+if(!defined('SESSION_HANDLER'))
+	define('SESSION_HANDLER', Ulap\Helpers\MySessionHelper::class);
+	
+if(!defined('DEBUG'))
+	define('DEBUG', true); //allow logging of debug on view
+ 
 
 
 // END OF FILE 

@@ -1,7 +1,7 @@
-<?php 
+<?php
 
-// error_reporting(E_ALL); // TODO Change to 0 on production MODE
-// ini_set("display_errors", "on"); // TODO Change to off on production mode
+error_reporting(E_ALL); // TODO Change to 0 on production MODE
+ini_set("display_error", "on"); // TODO Change to off on production mode
 
 /**
  * Entry point of Application
@@ -37,28 +37,32 @@ if(!defined('URL'))
 	define('URL',  '/'.$URL);
 
 //Application based defaults
-require( ROOT . DS . 'Config' . DS . 'defaults.php');
-require( LIB . DS . 'Router.php');
+require( ROOT . DS . 'Config' . DS . 'defaults.php');  
+  
 
+//** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error  
+set_error_handler(function($code, $message, $file, $line){
+	$message = array('MESSAGE: '. $message, 'FILE: '.$file, 'LINE: '. $line);
+	$message = implode("\n", $message);
+	App\ErrorHandler::handle(new Ulap\Helpers\MyRuntimeException($message, $code));
+});
+
+register_shutdown_function(function(){ 
+	$error = error_get_last(); 
+	if($error)
+	{
+		App\ErrorHandler::handleError($error);
+	} 
+});
+
+require( LIB . DS . 'Router.php');
 
 $queryString = urldecode(str_replace(URL.'/' , '', $_SERVER["REQUEST_URI"]));  
 
 $MyRouter = new Ulap\Router($queryString); 
 
 // TODO //To override, should extend the MyExceptionHandler Class
-$MyRouter->ExceptionHandler = new ApiErrorHandler();
-
-//** REGISTER A SHUTDOWN FUNCTION turn off reporting system for error 
-register_shutdown_function(function(){
-	$error = error_get_last();
-	if($error)
-	{
-		// var_dump($error);
-		 $exception = new Ulap\Helpers\MyRuntimeException($error['message']);
-		 $handler = new ApiErrorHandler();
-		 $handler->handle($exception);
-	} 
-});
+$MyRouter->ExceptionHandler = App\ErrorHandler::class;
 
 $MyRouter->route();   
 

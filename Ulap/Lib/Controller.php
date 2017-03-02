@@ -151,13 +151,14 @@
 
 		include_once(ROOT.DS."Layouts".DS."bottom.html");
 		
-		$this->afterRenderView();
-		
+		$this->afterRenderView(); 
+			
 		if(!headers_sent())
 		{
 			header('Access-Control-Allow-Origin: *');
 			http_response_code(200);
-		} 
+		}
+		
 		
 	}
 	

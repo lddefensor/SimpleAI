@@ -38,7 +38,7 @@ class DatabaseConnection extends \PDO {
 	  * @param $table STRING
 	  * @param $data ARRAY ($key=>$value)
 	  */
-	 public function filterTableFieldsInArray($table, $data) 
+	 public function filterTableFieldsInArray(string $table, array $data) 
 	 {
 		$driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
 		$key = ''; 
@@ -177,9 +177,9 @@ class DatabaseConnection extends \PDO {
 	 
 	 public function update($table, $data, $where='', $args='')
 	 {
-		$data = $this->filterTableFieldsInArray($data);
+		$data = $this->filterTableFieldsInArray($table, $data);
 		
-		$query = implode(' ', array('UPDATE', "`".$table."`" , 'SET'));
+		$query = implode(' ', array('UPDATE', "`".$table."`" , 'SET '));
 		
 		$args  = $this->makeSureItsArray($args);
 		
@@ -193,6 +193,8 @@ class DatabaseConnection extends \PDO {
 		}
 		
 		$query .= implode(', ', $set);
+		
+		$query .= ' WHERE ' . $where;
 		
 		return $this->run($query, $args);
 	 }

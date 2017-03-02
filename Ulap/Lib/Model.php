@@ -222,9 +222,9 @@ class Model {
 	{
 		$dbConnection->update($tableName, $info, $where);
 		
-		if($dbConnection->error) 
+		if($dbConnection->lastError) 
 		{
-			debug($dbConnection->error);
+			debug($dbConnection->lastError);
 			return false;
 		}
 		

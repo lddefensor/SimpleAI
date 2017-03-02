@@ -70,6 +70,24 @@
 			$this->useSession(true);
 			$this->Session->createSession($user);
 			
+			$sessionId = $this->__getSessionId();
+			if(isset($this->data['visitor_id']) && !empty($this->data['visitor_id']))
+			{
+				$this->importModel('Visitors');
+				//update session to include other info
+				$vistorData = $this->Visitors->findFirst(array('conditions'=>array('visitor_id'=>$this->data['visitor_id'])));
+				if($vistorData)
+				{
+					extract($vistorData);
+					$newInfo = array(
+						'device_key'=>$app,
+						'ip_address'=>$ip,
+						'user_agent'=>$client
+					);
+					$this->Session->update($newInfo, $sessionId);
+				}
+			}
+			
 			$this->message = 'You have logged in.';
 			return $this->redirect('/home'); 
 		}

@@ -92,12 +92,7 @@ class Router
 		{
 			$exceptionHandler = $this->ExceptionHandler;
 			$exceptionHandler::handle($e);
-		}
-		finally
-		{  	
-			if(isset($_SESSION['debug']))
-				unset($_SESSION['debug']);
-		}
+		} 
 	}
 } 
  

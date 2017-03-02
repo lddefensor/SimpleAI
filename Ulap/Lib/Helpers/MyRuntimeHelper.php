@@ -12,7 +12,7 @@ namespace Ulap\Helpers;
 
 use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
 
-require_once('MyRuntimeException.php'); 
+require_once('MyRuntimeException.php');  
  
 final class MyRuntimeHelper
 {
@@ -80,7 +80,8 @@ final class MyRuntimeHelper
 		}
 		catch (Exception $e)
 		{
-			throw MyRuntimeException::FailedToInstantiateClass($this->className, $e->getMessage());
+			echo 'loreliedazo';
+			//throw MyRuntimeException::FailedToInstantiateClass($this->className, $e->getMessage());
 		}
 	}
 	
@@ -119,6 +120,10 @@ final class MyRuntimeHelper
 			throw MyRuntimeException::NoMethod($this->className, $method);
 		}
 	}
-} 
+	
+	public static function ErrorHandler(){
+		echo 'lorelie dazo';
+	}
+}  
 
 /** END OF FILE **/

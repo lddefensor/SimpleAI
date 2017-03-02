@@ -7,7 +7,7 @@
 declare(strict_types=1);
 namespace Ulap;
 
- 
+require_once('Helpers' . DS. 'helper.php');
 require_once('Helpers' . DS . 'RoutePath.php');
 require_once('Helpers' . DS . 'MyRuntimeHelper.php');
 require_once('Helpers' . DS . 'MyExceptionHandler.php'); 
@@ -26,7 +26,9 @@ class Router
 	
 	public function __construct(string $queryString)
 	{
-		$this->path = new Helpers\RouterPath($queryString);   
+		//initialize PHP SESSION
+		session_start(); 
+		$this->path = new Helpers\RouterPath($queryString); 
 	}
 	
 	protected function __instantiateController(){
@@ -52,15 +54,23 @@ class Router
 	/** 
 	 * initializes the application
 	 * throws MyRuntimeException
+	 * throws RedirectException if the method calls a redirect
 	 **/
 	public function route()
 	{
 		try
 		{ 
-			$controller = $this->__instantiateController(); 
+			$controller = $this->__instantiateController();
+			
+			if(isset($_SESSION['errors']))
+			{
+				$controller->errors = $_SESSION['errors'];
+				unset($_SESSION['errors']);
+			}
+			
 			$controller->beforeMethodCall();
 			
-			$method = $this->path->getMethod(); 
+			$method = $this->path->getMethod();
 			
 			if(strstr($method, '__') !== false || array_search($method, $controller->privateMethods) !== false)
 				throw MyRuntimeException::AttemptToCallPrivateMethods($controller->name, $method);
@@ -69,17 +79,22 @@ class Router
 			
 			$controller->afterMethodCall($result);
 			
-			//renders the method
-			if($controller->autoRender)
+			if($controller->isJson)
+			{
+				header('Content-Type: application/json');
+				echo json_encode($result); 
+			}
+			//renders the method 
+			else if($controller->autoRender)
 				$controller->render();
 		}
 		catch(MyRuntimeException $e)
 		{
 			$exceptionHandler = $this->ExceptionHandler;
-			$exceptionHandler->handle($e); 
-		}
+			$exceptionHandler::handle($e);
+		} 
 	}
 } 
-
+ 
  
  // END OF FILE 

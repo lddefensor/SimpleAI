@@ -5,19 +5,29 @@
  */
  namespace Ulap;
  
- require_once('Helpers'.DS.'MyRuntimeHelper.php');
+ require_once('Helpers' .DS. 'MyRuntimeHelper.php');
+ require_once('Helpers' .DS. 'MySessionHelper.php');
+ require_once('Helpers' . DS . 'HTMLHelper.php');
  require_once('Model.php');
- 
+	
  use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
  use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
+ use Ulap\Helpers\MySessionHelper as MySessionHelper;
+ use Ulap\Helpers\HTMLHelper as HTMLHelper;
+ 
  use Ulap\Model as Model;
  
  class Controller 
  {
- 	public $models = array();
+	public $models = array();
 	public $autoRender = true;
-	public $viewData = array(); 
+	public $viewData = array();
+	public $errors = array();
+	public $isJson = false;
+	
 	public $currentMethod = null;
+	
+	public $ViewDir = 'View';
 	
 	public $privateMethods = array(
 		'invokeMethod',
@@ -26,7 +36,9 @@
 		'importModel',
 		'render',
 		'beforeRenderView',
-		'afterRenderView'
+		'afterRenderView',
+		'useSession',
+		'redirect'
 	);
 	
 	
@@ -64,14 +76,22 @@
 		$model = ucfirst($model) ;
 		
 		if(isset($this->$model) && $reimport === false)
-			return $this->$model;
-		
+			return $this->$model; 
 		
 		$modelPath = ROOT . DS . 'Model' . DS . $model . 'Model.php';
 		$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
 		$this->$model = $runtime->instantiateClass(); 
 		
 		return $this->$model;
+	}
+	
+	function useSession(bool $use){
+		 if(!defined('SESSION_HANDLER'))
+				throw new MyRuntimeException('Undefined Session Handler');
+		
+			$SessionHandler = SESSION_HANDLER;
+			 
+			$this->Session = new $SessionHandler(); 
 	}
 	
 	/**
@@ -107,9 +127,9 @@
 	/**
 	 * passess any of the data inside viewData in the template
 	 */
-	public function render(){
+	public function render(){ 
 		
-		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS;
+		$dir = ROOT.DS.$this->ViewDir.DS.$this->name.DS; 
 
 		if(!file_exists($dir) || !file_exists($dir.$this->currentMethod.".html"))
 		{
@@ -118,7 +138,12 @@
 		
 		$this->beforeRenderView();
 
-		if(sizeof($this->viewData)) extract ($this->viewData); 
+		if(sizeof($this->viewData)) extract ($this->viewData);
+		
+		if($this->__hasErrors())
+		{
+			HTMLHelper::$hasErrors = $this->errors; 
+		}
 
 		include_once(ROOT.DS."Layouts".DS."top.html");
 
@@ -126,8 +151,8 @@
 
 		include_once(ROOT.DS."Layouts".DS."bottom.html");
 		
-		$this->afterRenderView();
-		
+		$this->afterRenderView(); 
+			
 		if(!headers_sent())
 		{
 			header('Access-Control-Allow-Origin: *');
@@ -137,6 +162,29 @@
 		
 	}
 	
+	
+	/**
+	 * checks if current error has values
+	 */
+	public function __hasErrors() : bool {
+		return sizeof(array_keys($this->errors)) > 0 ;
+	}
+	
+	/**
+	 *redirect allows the controller to forfeit method execution and go to another action
+	 *
+	 */
+	public function redirect($url)
+	{
+		//check for existing 'error' and save to session
+		if($this->__hasErrors())
+		{
+			$_SESSION['errors'] = $this->errors;
+			$this->errors = array();
+		}
+		header("Location: " . URL . $url);
+		exit;
+	} 
 	/**
 	 * default action
 	 */

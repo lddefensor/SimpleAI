@@ -1,4 +1,9 @@
 <?php
+/**
+ * some global helpers
+ */
+
+namespace Ulap\Helpers;
 
 //** helper functions **/
 
@@ -9,33 +14,28 @@ function pr($k)
 	print_r($k);
 	echo "</pre>";
 }
+ 
 
-function debug ($obj)
-{
-	if(!debug) return; 
-	$callers=debug_backtrace();
-	
-	$d = array();
-
-	if(  isset($callers[0]))
-	{
-		 $caller = $callers[0]; $k = array();
-		 foreach($caller as $key=>$value)
-		 {
-		 	if(!is_string($key)) $key = json_encode($key);
-			if(!is_string($value)) $value = json_encode($value); 
-		 	$k[] = $key . ": " . $value . " ";
-		 }
-		$d["caller"] = "<b>".implode(", ", $k)."</b>";
-
+function debug($obj, int $depth = 0, int $min = 0)
+{  
+	$trace = debug_backtrace(); 
+	if(!isset($_SESSION['debug']))
+		$_SESSION['debug'] = array();
+		
+	while ($depth >= $min)
+	{ 
+		$include = array(
+			'class'=>  isset($trace[$depth]['class']) ? $trace[$depth]['class'].' ::' : '', 
+			'function'=>  $trace[$depth]['function'], 
+			'line'=>  $trace[$depth]['line'], 
+			'file'=> isset( $trace[$depth]['file']) ? $trace[$depth]['file'] : '' 
+		);
+		if($depth == $min)
+			$include['value'] = $obj;
+		$depth--;
+		
+		$_SESSION['debug'][] = $include;
 	}  
-	
-	$d["obj"] = $obj;  
-	
-	if(!(Session::$SESSION->has('debug'))) Session::$SESSION->set("debug", array());
-	$debug = Session::$SESSION->get("debug");
-	$debug[] = $d;
-	Session::$SESSION->set("debug", $debug); 
 
 }
 

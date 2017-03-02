@@ -62,7 +62,7 @@ final class RouterPath {
 	 * $_POST or json_decoded of php:://input
 	 */
 	public function getData(): array{
-		return (empty($_POST)  ? json_decode(file_get_contents('php://input')) : $_POST) ?? array();
+		return (empty($_POST)  ? (array) json_decode(file_get_contents('php://input')) : $_POST) ?? array();
 	}
 	
 	/*

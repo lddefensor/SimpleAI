@@ -4,11 +4,13 @@ namespace Ulap;
  
 require_once('Helpers'.DS.'MyRuntimeHelper.php');
 require_once('Helpers'.DS.'MyRuntimeException.php');
+require_once('Helpers'.DS.'QueryHelper.php');
 require_once('DatabaseConnection.php');  
 require_once(ROOT.DS.'Config'.DS.'database.php');
 
 use App\DBConfig as DBConfig;
 use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
+use Ulap\Helpers\QueryHelper as QueryHelper;
 
 class Model {
 	
@@ -21,10 +23,17 @@ class Model {
 	public $_fields;
 	public $primaryKey;
 	
-	public $dbConnection; 
+	public $dbConnection;
+	public $queryBuilder;
+	
+	//used by fetch function
+	public $queryParams;
+	
+	//list of fields to search when querying during fetch if searchField is not given in fetchParams
+	public $searchParams;  
 	
 	function __construct($name = null, $connection = null )
-	{
+	{ 
 		if(!$connection) $connection = $this->connection;
 		if(!$name) $name = get_class($this);
 		if(!$this->name) $this->name = $name;
@@ -33,19 +42,26 @@ class Model {
 		if(!$this->connection) $this->connection = $connection;
 		
 		if(!$this->tableName) $this->tableName = strtolower($this->name);
-		if(!$this->primaryKey) $this->primaryKey = 'id';
+ 
+		if(!$this->primaryKey) 
+		{
+			$this->primaryKey = 'id';
+		}  
 		
 		$this->_tableName = $this->tableName;
 		
 		$this->__initializeConnection();
 		
 		$exists = $this->__tableExists(); 
+
 		if(!$exists)
 		{
 			throw new MyRuntimeException('Table ' . $this->tableName . ' does not exists ', 4001);
 		} 
 		//initialize fields
 		$this->__getFields();
+ 
+		$this->queryBuilder = new QueryHelper($this);
 	} 
 	
 	/**
@@ -76,246 +92,165 @@ class Model {
 		return $exists ? true : false;
 	}
 	
+	/*
+	* checks the list of table fields and counter checks primary key
+	*/
 	protected function __getFields(){
-		$fields = $this->dbConnection->run("DESCRIBE ". $this->tableName. ";");
-		$_fields = array();
-		
-		$key = 'id';
-		
-		if(is_array($fields))
-		{  
-			array_walk($fields, function(&$field, $key) use (&$_fields, &$key){
-				$type = 'string';
-				$t = strtoupper($field['Type']);  
-				 
-				if(strstr($t, 'INT(')) $type = 'INT';
-				else if($t == 'DOUBLE') $type = 'FLOAT';
-				else if($t == 'TIMESTAMP' || $t == 'DATETIME' || $t == 'DATE') $type='DATETIME';	
-				 
-				$_fields[$field['Field']] = $type;
-				 
-				if($field['Key'] == 'PRI') 
-				{
-					$key = $field['Field'];
-				}
-				
-			}); 
-			
-			$this->_fields = $_fields; 
+		if( !isset($this->_fields) || !sizeof($this->_fields) )
+		{
+			$fields = $this->dbConnection->getFields($this->tableName);
+ 
+ 			if(!$this->primaryKey)
+				$this->primaryKey = $fields['primary'];
+			$this->_fields = $fields['fields'];
 		}
-		
-		$this->primaryKey = $key;
+
+		return $this->_fields;
+	} 
+
+	public function run($query, $args = '')
+	{
+		return $this->dbConnection->run($query, $args);
 	}
 
-	// THE FOLLOWING METHODS ARE SPECIALIZED QUERIES
-	function findFirst($options = array())
+
+	/*
+	* calls a select query 
+	*/
+	public function find(array $options = array()){
+
+		$query = $this->queryBuilder->buildSelectQuery($options); 
+		
+		return  $this->run($query);
+	}
+
+	/**
+	* calls a find but with limit 1
+	*/
+	public function findFirst(array $options = array())
 	{
 		$options['limit'] = 1;
-		$data = $this->find($options);
-		if(isset($data[0]))
-		{
-			return $data[0];
-		}
-		
+		$result = $this->find($options);
+ 
+		if(isset($result[0])) return $result[0];
+
 		return null;
 	}
-	
-	function findCount($options = array())
-	{
-		$options["fields"] = "COUNT(".$this->primaryKey.") as a";
-		$count = $this->findFirst($options); 
-		return $count['a'];
-	}
-	
-	static function findQuery($dbConnection, $tableName, $options)
-	{
-		$where = " 1=1 ";
-		if(isset($options["conditions"]))
-		{
-			if(is_array($options["conditions"]))
-			{
-				$where = array(); 
-				foreach($options["conditions"] as $key => &$value)
-				{
-					if(is_string($value))
-					{ 
-						$value =   $dbConnection->quote($value)   ;
-						
-					}
-					$where[] = $key ."=".$value;
-				}
-				$where = implode(" AND ", $where); 
-			} else if(is_string($options["conditions"]))
-			{
-				$where = $options["conditions"];
-			}
-		} 
-		
-		if(isset($options["order"]))
-		{
-			$where .= " ORDER BY " . $options["order"];
-		}
-		
-		if(isset($options['limit']))
-		{
-			if(is_array($options['limit']))
-			{
-				$limit = implode(",", $options["limit"]);
-			}
-			else 
-			{
-				$limit = $options["limit"];
-			}
-			
-			$where .= " LIMIT ". $limit;
-		}
-		 
-		
-		if(isset($options["fields"]))
-		{ 
-			return $dbConnection->select($tableName, $where,  $options['fields']);
-			
-		} 
-		
-		return $dbConnection->select($tableName, $where, "");
-	}
-	
-	
 
-	function find($options = array())
-	{
-		if(!isset($options) && isset($this->fields)) 
-		{
-			$options['fields'] = $this->fields;    
-		} 
-		
-		if(isset($options['fields']) && is_array($options['fields'])) 
-		{
-			$options['fields'] = implode(',', $options['fields']);
-		}
-		
-		$data =  SELF::findQuery($this->dbConnection, $this->tableName, $options);
-		
-		if(isset($this->_fields))
-		{ 
-			if($data && sizeof($data))
-			{   
-				foreach($data as &$datum){ 
-					foreach($datum as $column => &$value){
-						if(isset($this->_fields[$column])){
-							$type = $this->_fields[$column]; 
-							
-							switch ($type) {
-								case 'INT': $value = (int) $value; break;
-								case 'FLOAT': $value = (float) $value; break;
-							}  
-						}
-					}
-				}
-			}
-		}
-		
-		return $data;
+	/*
+	* calls a find but field count
+	*/
+	public function findCount(array $options = array()) : int{
+		$options['fields'] = 'COUNT('.$this->primaryKey . ') as count_id';
+
+		$result = $this->findFirst($options); 
+
+		if(isset($result['count_id'])) return $result['count_id'];
+
+		return 0;
 	}
-	
-	static function updateQuery($dbConnection, $tableName, $info, $where)
+
+	/*
+	* runs an insert query (single valued data only)
+	*/
+	public function insert(array $data)  
 	{
-		$dbConnection->update($tableName, $info, $where);
-		
-		if($dbConnection->lastError) 
-		{
-			debug($dbConnection->lastError);
-			return false;
-		}
-		
-		return true;
-	}
-	
-	function update($info, $id)
-	{ 
-		if(is_int($id)) $id = (int) $id; 
-		$where = $this->primaryKey . " = '".  $id ."'"; 
-		return self::updateQuery($this->dbConnection, $this->tableName, $info, $where);
-	}
-	
-	
-	function insert($info)
-	{
-		return self::insertQuery($this->dbConnection, $this->tableName, $info);
-	}
-	
-	static function insertQuery($dbConnection, $tableName, $info)
-	{
-		return $dbConnection->insert($tableName, $info);
-	}
-	
-	function get($id)
-	{
-		$data = $this->find(array('conditions'=>array($this->primaryKey=>$id), "limit" => 1));
-		if(isset($data[0])) return $data[0];
-	} 
-	
-	function getError()
-	{
-		$code = $this->getErrorCode();
-		$error = $this->dbConnection->lastError;
-		if($code == '23000')
-			$error = str_replace('SQLSTATE[23000]: Integrity constraint violation: 1062 ', '', $error); 
-		return $error;
-	}
-	
-	function getErrorCode()
-	{
-		return $this->dbConnection->errorCode;
-	}
-	
-	function delete()
-	{
-		\Ulap\Helpers\debug(array('tableName'=>$this->tableName, 'primaryKey'=>$this->primaryKey), 2);
-		return self::deleteQuery($this->dbConnection, $this->tableName, $this->primaryKey, $this->id);
-	}
-	
-	static function deleteQuery($dbConnection, $tableName,  $primaryKey, $id)
-	{
-		if($id)
-		{	
-			$dbConnection->delete($tableName, $primaryKey ." = '". $id ."'"); 
-			
-			if($dbConnection->lastError) return false;
-			return true;
-		}
+
+		$build = $this->queryBuilder->buildInsertQuery($data); 
+		extract($build); 
+
+		$this->run($query, $args, false);
+
+		if(!$this->dbConnection->lastError) return $this->dbConnection->lastInsertId();
+
 		return false;
 	}
-	
-	function run($sql, $bind = true, $procedure = false)
+
+	/*
+	* runs an update query
+	*/
+	public function update(array $data, $id)
 	{
-		return self::runQuery($this->dbConnection, $sql, $bind, $procedure);
-	} 
-	
-	static function runQuery($dbConnection, $sql, $bind = true, $procedure = false)
-	{
-		return $dbConnection->run($sql, $bind, $procedure);
+		$build = $this->queryBuilder->buildUpdateByIdQuery($data, $id);
+		extract($build); 
+
+		$this->run($query, $args, false);
+
+		return $this->dbConnection->lastError ? false : true;
+  
 	}
-	
-	public function insertOnUpdate($info) {
-		$table = $this->tableName;
-		$fields = $this->dbConnection->filter($table, $info);
-		$sql = "INSERT INTO " . $table . " (" . implode($fields, ", ") . ") VALUES (:" . implode($fields, ", :") . ")";
-		$bind = array();
-		$u = array();
-		foreach($fields as $field)
-		{ 
-			$bind[":$field"] = $info[$field];
-			$u[] = $field.="=VALUES(".$field.")";
+
+	/*
+	* runs a delete query
+	* id of model should be set first
+	*/
+	public function delete()
+	{
+		if(!isset($this->id) || !$this->id) return false;
+
+		$query = $this->queryBuilder->buildDeleteByIdQuery($this->id);
+
+		$this->run($query);
+
+		return $this->dbConnection->lastError ? false : true;
+	}
+
+	/*
+	* runs an insert on update query
+	*/
+	public function insertOnUpdate(array $data)
+	{ 
+		$build = $this->queryBuilder->buildInsertOnUpdateQuery($data);
+		extract($build); 
+
+		$this->run($query, $args, false);
+
+		return $this->dbConnection->lastError ? false : true;
+	}
+
+
+	/*
+	* special function called by grid
+	*/
+	public function fetch()
+	{
+		if(!$this->queryParams) return false;
+
+		// BUILD OPTIONS FOR FETCHING
+		$options = array(); 
+ 
+
+		//allow search
+		if(isset($this->queryParams['searchPhrase']))
+		{
 		}
-		
-		$sql.= " ON DUPLICATE KEY UPDATE ".implode(",",$u);
-		
-		$this->run($sql, $bind);  
-		
-		if($this->dbConnection->error) return false;
-		return true;
-	} 
+
+		if(isset($this->queryParams['rowCount']))
+			$options['limit'] = $this->queryParams['rowCount'];
+
+		if(isset($this->queryParams['current']))
+			$options['page'] = $this->queryParams['current'];
+
+		if(isset($this->queryParams['sort']))
+		{
+			$sort = (array) $this->queryParams['sort'];
+			// name - value pair
+			$sortField = array_keys($sort) [0];
+
+			$options['order'] = $sortField . ' ' . $sort[$sortField];
+ 		} 
+
+		$rows = $this->find($options);
+
+		unset($options['limit']);
+		unset($options['page']);
+		$totalCount = $this->findCount($options);
+
+
+		return array('rows' => $rows , 'total' => $totalCount);
+
+	}
+
 
 }
 

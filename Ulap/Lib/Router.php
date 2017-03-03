@@ -11,7 +11,7 @@ require_once('Helpers' . DS. 'helper.php');
 require_once('Helpers' . DS . 'RoutePath.php');
 require_once('Helpers' . DS . 'MyRuntimeHelper.php');
 require_once('Helpers' . DS . 'MyExceptionHandler.php'); 
-require_once('Controller.php');
+require_once('Controller.php'); 
 
 use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
 use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
@@ -32,11 +32,8 @@ class Router
 	}
 	
 	protected function __instantiateController(){
-		$className = ucfirst($this->path->getController()) . 'Controller';  
 		
-		$filePath = ROOT.DS.'Controller'. DS. $className. '.php';
-		
-		$this->runtime = new MyRuntimeHelper($filePath, 'App\\'.$className);
+		$this->runtime = new MyRuntimeHelper($this->path->getControllerFilePath(), $this->path->getControllerClassName());
 		$this->runtime->instantiateClass(array($this));
 		
 		$controller = $this->runtime->instance;
@@ -57,7 +54,7 @@ class Router
 	 * throws RedirectException if the method calls a redirect
 	 **/
 	public function route()
-	{
+	{ 
 		try
 		{ 
 			$controller = $this->__instantiateController();
@@ -93,7 +90,12 @@ class Router
 			$exceptionHandler = $this->ExceptionHandler;
 			$exceptionHandler::handle($e);
 		} 
+
+
+		unset($_SESSION['debug']);
 	}
+	
+	
 } 
  
  

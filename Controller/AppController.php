@@ -29,18 +29,21 @@
 	
 	public function beforeMethodCall(){
 		 
-			$this->useSession(true);
-			
-			$sessionId = $this->__getSessionId();
-			
-			if(!$sessionId)
-			{ 
-					return $this->redirect('/login');
-			}
-			
-			$session =	$this->Session->findFirst(array("conditions"=>array("session_id" => $sessionId))); 
+		$this->useSession(true);
+		
+		$sessionId = $this->__getSessionId(); 
+		
+		if(!$sessionId)
+		{ 
+				return $this->redirect('/login');
+		}
+		
+		$session =	$this->Session->findFirst(array("conditions"=>array("session_id" => $sessionId))); 
 	}
 	
+	public function beforeRenderView(){
+		$this->viewData['session_id'] = $this->__getSessionId();
+	}
 	
  }
 

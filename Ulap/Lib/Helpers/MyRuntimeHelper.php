@@ -27,7 +27,7 @@ final class MyRuntimeHelper
 		} 
 		
 		//include the file  
-		require_once($path);  
+		require_once($path); 
 		
 		if(!class_exists($className))
 		{
@@ -80,8 +80,7 @@ final class MyRuntimeHelper
 		}
 		catch (Exception $e)
 		{
-			echo 'loreliedazo';
-			//throw MyRuntimeException::FailedToInstantiateClass($this->className, $e->getMessage());
+			throw MyRuntimeException::FailedToInstantiateClass($this->className, $e->getMessage());
 		}
 	}
 	
@@ -97,15 +96,15 @@ final class MyRuntimeHelper
 	 * calls a method
 	 */
 	public function invokeMethod(string $method, array $args = null)
-	{
+	{ 
 		try 
 		{ 
 			$reflector = $this->reflection->getMethod($method);
 			
-			$args = $reflector->getNumberOfParameters();
+			$numArgs = $reflector->getNumberOfParameters();
 			$requiredArgs = $reflector->getNumberOfRequiredParameters();
 			
-			if($args == 0 || ($requiredArgs == 0 && $args == null))
+			if($numArgs == 0 || ($requiredArgs == 0 && $args == null))
 			{
 				return $this->instance->$method();
 			}
@@ -120,10 +119,7 @@ final class MyRuntimeHelper
 			throw MyRuntimeException::NoMethod($this->className, $method);
 		}
 	}
-	
-	public static function ErrorHandler(){
-		echo 'lorelie dazo';
-	}
+	 
 }  
 
 /** END OF FILE **/

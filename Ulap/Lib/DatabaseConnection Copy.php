@@ -31,13 +31,15 @@ class DatabaseConnection extends \PDO {
 		{
 			throw($e);
 		} 
-	 } 
+	 }
 	 
 	 /**
-	 * retrieves the columns and the type of the field
-	 * given by  table name
-	 */
-	 public function getFields($table){ 
+	  * make sure that only fields from table are inside data
+	  * @param $table STRING
+	  * @param $data ARRAY ($key=>$value)
+	  */
+	 public function filterTableFieldsInArray(string $table, array $data) 
+	 {
 		$driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
 		$key = ''; 
 		switch(strtoupper($driver)){
@@ -55,36 +57,22 @@ class DatabaseConnection extends \PDO {
 				break; 
 		}
 		
-		$fields = $this->run($query); 
-		$_fields = array();
-		
-		$key = 'id';
-
-		if(is_array($fields))
-		{  
-			array_walk($fields, function(&$field, $key) use (&$_fields, &$key){
-				$type = 'string';
-				$t = strtoupper($field['Type']);  
+		$fields = $this->run($query);
+		if($fields)
+		{
+			return array_reduce($fields, function($a, $b) use ($data, $key){ 
+				$f = $b[$key];
 				 
-				if(strstr($t, 'INT(')) $type = 'INT';
-				else if($t == 'DOUBLE') $type = 'FLOAT';
-				else if($t == 'TIMESTAMP' || $t == 'DATETIME' || $t == 'DATE') $type='DATETIME';	
-				 
-				$_fields[$field['Field']] = $type;
-				 
-				if($field['Key'] == 'PRI') 
-				{
-					$key = $field['Field'];
+				if(isset($data[$f])) {
+					$a[$f] = $data[$f];
 				}
-				
-			});  
-
-			$fields = $_fields;
-		}
-
-		return array('fields'=>$fields, 'primary'=>$key);
-	} 
-	
+				return $a;
+			}, array());
+		}  
+		return array(); 
+	}
+	 
+	 
 	 /**
 	  * @param $args MIXED
 	  */
@@ -113,8 +101,8 @@ class DatabaseConnection extends \PDO {
 	 private function hasAffectedRows(){
 	 	return (preg_match("/^(" . implode("|", array("delete", "insert", "update")) . ") /i", $this->lastQuery));
 	 }
-
-	/*
+	
+	 /*
 	  * runs a query and returns results (if any) 
 	  * @param $sql STRING
 	  * @param $args MIXED
@@ -134,7 +122,8 @@ class DatabaseConnection extends \PDO {
 			{ 
 				if($args) \Ulap\Helpers\debug($args);
 				\Ulap\Helpers\debug($sql, 2, 1);
-			} 
+			}
+			
 			
 			$statement = $this->prepare($this->lastQuery);
 			$response = $statement->execute($this->lastArgs);
@@ -159,8 +148,88 @@ class DatabaseConnection extends \PDO {
 			return false;
 		}
 	 }
-
-
+	 
+	 
+	 //SPECIAL FUNCTIONS here
+	 public function select(string $table, string $where='', $fields='*', $args=''){
+	 	
+		$fields = empty($fields) ? '*' : $fields;
+		
+		$query = implode(" ", array("SELECT",$fields, "FROM", "`".$table."`" ));
+			
+		if(!empty($where))
+		{
+			$query .=  implode(" ", array(" WHERE", $where));
+		}
+		
+		$query .= ";";
+		
+		\Ulap\Helpers\debug(array(
+			'table' => $table,	
+			'where' => $where,
+			'fields' => $fields, 
+			'args' => $args
+		), 3, 1);
+		\Ulap\Helpers\debug($query);
+		
+		return $this->run($query, $args, false);  
+	 }
+	 
+	 public function update($table, $data, $where='', $args='')
+	 {
+		$data = $this->filterTableFieldsInArray($table, $data);
+		
+		$query = implode(' ', array('UPDATE', "`".$table."`" , 'SET '));
+		
+		$args  = $this->makeSureItsArray($args);
+		
+		$set = array();
+		foreach($data as $key=>$value)
+		{
+			$a = ':update_' . $key;
+			
+			$set[] = $key.' = '.$a;
+			$args[$a] = $value;
+		}
+		
+		$query .= implode(', ', $set);
+		
+		$query .= ' WHERE ' . $where;
+		
+		return $this->run($query, $args);
+	 }
+	 
+	 public function insert($table, $data)
+	 {
+	 	$data = $this->filterTableFieldsInArray($table, $data);
+		$fields = array_keys($data);
+		
+		\Ulap\Helpers\debug($data);
+		
+		
+		$query = 'INSERT INTO `' . $table . '` (' . implode(',', $fields)  . ') VALUES (:' . implode(', :', $fields) . ')';
+		
+		\Ulap\Helpers\debug($data, 2, 1);
+		\Ulap\Helpers\debug($query);
+		
+		$args = array();
+		foreach($fields as $field)
+		{
+			$args[':' . $field] = $data[$field];
+		} 
+		
+		$this->run($query, $args, false);
+		
+		if(!$this->lastError) return $this->lastInsertId();
+		
+		return false; 
+	 }
+	 
+	 public function delete($table, $where, $args = '')
+	 {
+	 	$query = 'DELETE FROM `' . $table . '` WHERE ' . $where . ';';
+		$this->run($query, $args);
+	 }
 	 
 }	
 /** END OF FILE **/

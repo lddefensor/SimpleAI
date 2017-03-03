@@ -3,7 +3,7 @@
     	<li><a href="#/listings">Listings</a></li> 
    	</ul> 
    	<ul class="nav navbar-nav navbar-right">
-   		<li><a href="/estategrabber/login/logout">Logout</a></li>
+   		<li><a href="<?php echo URL ?>/login/logout">Logout</a></li>
    	</ul>
 </main-nav>
 
@@ -11,8 +11,8 @@
 	<div id="sidemenu" ng-class="menuOpen ? 'col-sm-2' : 'sr-only'"><dashboard-menu></dashboard-menu></div>
 	<div id="content" ui-view ng-class="menuOpen ? 'col-xs-10' : 'col-xs-12'"></div>
 </div>
-<script data-main="../js/home.js" src="../js/libs/require.js"></script>
+<script data-main="<?php echo URL ?>/js/home.js" src="<?php echo URL ?>/js/libs/require.js"></script>
 <script>
-	var sessId = "<?php echo $sessionId; ?>"; 
-	var URL = "/estategrabber/";
+	var sessId = "<?php echo $session_id; ?>"; 
+	var URL = "<?php echo URL ?>/";
 </script>

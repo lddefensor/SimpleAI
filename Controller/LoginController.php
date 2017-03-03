@@ -93,7 +93,7 @@
 		}
 		
 		$this->errors['username'] = 'User is not found or inactive';
-		$this->redirect('/login');
+		//$this->redirect('/login');
 	}
 	
 	/**

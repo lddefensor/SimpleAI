@@ -27,9 +27,9 @@ require (LIB . DS . 'Helpers' . DS . 'RoutePath.php');
 require (LIB . DS . 'Helpers' . DS . 'helper.php');
 require (LIB . DS . 'Helpers' . DS . 'MyRuntimeException.php');
 require (LIB . DS . 'Helpers' . DS . 'MyRuntimeHelper.php');
+require (LIB . DS . 'Helpers' . DS . 'QueryHelper.php');
 
-set_include_path(get_include_path() . PATH_SEPARATOR );
-
+set_include_path(get_include_path() . PATH_SEPARATOR ); 
 // FOR RoutePathTest.php require RoutePath  
 
 

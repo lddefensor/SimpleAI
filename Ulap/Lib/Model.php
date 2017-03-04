@@ -111,8 +111,33 @@ class Model {
 	public function run($query, $args = '')
 	{
 		return $this->dbConnection->run($query, $args);
-	}
+	} 
 
+	/*
+	* called every find
+	* can be overriden 
+	* parse all returns appropriate to type of field
+	*/
+	public function afterFind(&$results)
+	{
+		foreach($results as &$result)
+		{
+			foreach($result as $field => $value)
+			{
+				if(isset($this->_fields[$field]))
+				{
+					$type = $this->_fields[$field];
+
+					if(strtolower($type) == 'int') $value = (int) $value;  
+					if(strtolower($type) == 'float') $value = (float) $value;
+ 
+ 					$result[$field] = $value;
+				}
+			}
+		}
+
+		return $results;
+	}
 
 	/*
 	* calls a select query 
@@ -121,7 +146,11 @@ class Model {
 
 		$query = $this->queryBuilder->buildSelectQuery($options); 
 		
-		return  $this->run($query);
+		$results =  $this->run($query);
+
+		$this->afterFind($results);
+
+		return $results;
 	}
 
 	/**
@@ -135,6 +164,17 @@ class Model {
 		if(isset($result[0])) return $result[0];
 
 		return null;
+	}
+
+	/**
+	* find first by primaryKey
+	*/
+	public function get($id)
+	{
+		$options = array('conditions'=>array());
+		$options['conditions'][$this->primaryKey] = $id;
+
+		return $this->findFirst($options);
 	}
 
 	/*
@@ -223,6 +263,27 @@ class Model {
 		//allow search
 		if(isset($this->queryParams['searchPhrase']))
 		{
+			$options['conditions'] = array();
+			$subQuery =  'LIKE ' . $this->queryParams['searchPhrase'] . '%';
+			if(isset($this->queryParams['searchField']))
+			{
+				$options['conditions'][$this->queryParams['searchField']] = $subQuery;
+
+			}
+			else if(isset($this->searchParam))
+			{
+				$options['conditions'][$this->searchParam] = $subQuery;
+			}
+			else if(isset($this->searchParams) && sizeof($this->searchParams))
+			{
+				$conditions = array();
+				foreach($this->searchParams as $param)
+				{
+					$conditions[$param] = $subQuery;
+				}
+				$options['conditions']['OR'] = $conditions;
+			} 
+
 		}
 
 		if(isset($this->queryParams['rowCount']))
@@ -251,6 +312,101 @@ class Model {
 
 	}
 
+	/**
+	* saves the data (decides if it's an insert or an update)
+	* should use property unique field of model
+	*/
+	public function saveUnique(array $data, string $name = ''){
+
+		if(!isset($this->uniqueFields)) throw new MyRuntimeException('No unique fields, unable to peform save unique');
+
+		$uniqueFields = $this->uniqueFields; 
+		
+		$conditions = array();  
+		
+		foreach($uniqueFields as $field){
+			$conditions[$field] = $data[$field];
+		}
+		
+		$exists = $this->find(array("fields"=>array("id"), "conditions"=>$conditions));
+		
+		$errorExists = array('success'=> false, 'error' => $name . ' already exists', 'id' => sizeof($exists) ? (int) $exists[0]['id'] : null);
+		 
+		if(isset($data['id']))
+		{
+			$id = $data['id'];
+			unset($data['id']);
+			
+			if(sizeof($exists))
+			{
+				$eid = $exists[0]['id'];
+				if((int) $eid != (int) $id) return $errorExists; 
+			}
+			
+			if($this->update($data, $id))
+				return array('success'=>true, 'id'=> (int) $id);
+			
+			$errorMessage = $this->getErrorMessage();
+			
+			return array('success'=>false, 'error'=>'Failed to save' . $errorMessage);
+		}
+		
+		if(sizeof($exists)) return $errorExists;
+			  
+		$id = $this->insert($data);
+		
+		if($id) 
+				return array('success'=>true, 'id'=> (int) $id);
+			
+		$errorMessage = $this->getErrorMessage();
+		
+		return array('success'=>false, 'error'=>'Failed to save'. $errorMessage);
+	}
+
+	public function reorder($current, $replace){ 
+		
+		$a = (int) $current['order_field'];
+		$b = (int) $replace['order_field'];
+		$c = $b + 1;
+		$id = $current['id']; 
+		
+		if($a < $b)
+		{
+			$t1 = "UPDATE $table SET order_field = order_field - 1 WHERE order_field <= $b AND order_field > $a AND id != $id;";
+			$t3 = "UPDATE $table SET order_field = ($b) WHERE id = $id;";
+			
+			$this->run($t1.$t3);	
+		} 
+		else
+		{
+			$t1 = "UPDATE $table SET order_field = order_field + 1 WHERE order_field >= $b AND order_field < $a AND id != $id;";
+			$t3 = "UPDATE $table SET order_field = ($b) WHERE id = $id;";  
+			
+			$this->run($t1.$t3);	
+		}  
+				 
+		return array('success'=>true);
+	}
+
+	/*
+	* returns the last error message encountered by db connection
+	*/
+	public function getErrorMessage() {
+		if($this->dbConnection->lastError)
+			return $this->dbConnection->lastError['message'];
+		
+		return null;
+	}
+
+	/*
+	* returns the last error code encountered by db connection
+	*/
+	public function getErrorCode(){
+		if($this->dbConnection->lastError)
+			return $this->dbConnection->lastError['code'];
+		
+		return null;
+	}
 
 }
 

@@ -417,11 +417,11 @@
 		//$value is still to be processed
 		$operator = $like ? 'LIKE ' : 'NOT LIKE ';
 		$value = str_replace($operator, '', $value);
-		
+		$value = strtoupper($value);
 		
 		$value = $this->__parseFieldValue($field, $value);
 		
-		return '`' . $field . '` ' . $operator . ' ' . $value;
+		return 'UCASE(`' . $field . '`) ' . $operator . ' ' . $value;
 	}
 	
 	/**

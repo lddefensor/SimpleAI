@@ -1,0 +1,214 @@
+<?php
+/**
+ * Parent class of all controllers
+ * @author Lorelie Defensor
+ */
+ namespace Ulap;
+ 
+ require_once('Helpers' .DS. 'MyRuntimeHelper.php');
+ require_once('Helpers' .DS. 'MySessionHelper.php');
+ require_once('Helpers' . DS . 'HTMLHelper.php'); 
+ require_once('Model.php');
+	
+ use Ulap\Helpers\MyRuntimeHelper as MyRuntimeHelper;
+ use Ulap\Helpers\MyRuntimeException as MyRuntimeException;
+ use Ulap\Helpers\MySessionHelper as MySessionHelper;
+ use Ulap\Helpers\HTMLHelper as HTMLHelper;
+ 
+ use Ulap\Model as Model;
+ 
+ class Controller 
+ {
+	public $models = array();
+	public $autoRender = true;
+	public $viewData = array();
+	public $errors = array();
+	public $isJson = false;
+	public $url = '';
+	public $basePath;
+	public $continue = true;
+	
+	public $currentMethod = null;
+	
+	public $ViewDir = 'View';
+	
+	public $privateMethods = array(
+		'invokeMethod',
+		'beforeMethodCall',
+		'afterMethodCall',
+		'importModel',
+		'render',
+		'beforeRenderView',
+		'afterRenderView',
+		'useSession',
+		'redirect'
+	);
+	
+	
+	public function __construct()
+	{ 
+		$name = get_class($this); 
+		$name = substr($name, strrpos($name, '\\') + 1);
+		$this->name = $name == 'Controller' ? $name : str_replace('Controller', '', $name); 
+	
+	}
+
+	public function initialize(){
+		$this->__initializeModels();
+	}
+ 	
+	private function __initializeModels()
+	{
+		if(!is_array($this->models) || !sizeof($this->models))
+			return;
+		try
+		{ 	
+			foreach($this->models as $model){
+				$this->importModel($model);	
+			}
+		}
+		catch (\Exception $e)
+		{ 
+			throw new MyRuntimeException('Model Error: '. $e->getMessage(), $e->getCode());
+		}
+	}
+	
+	/**
+	 * allows on the fly creation of model class with name $model
+	 */
+	function importModel(string $model, bool $reimport = false)
+	{
+		
+		$model = ucfirst($model) ;
+		
+		if(isset($this->$model) && $reimport === false)
+			return $this->$model; 
+		 
+
+		$modelPath = $this->basePath . 'Model' . DS . $model . 'Model.php';
+		$runtime = new MyRuntimeHelper($modelPath, 'App\\'.$model);	
+		$this->$model = $runtime->instantiateClass(); 
+		
+		return $this->$model;
+	}
+	
+	function useSession(bool $use, $tableName = null){
+		 if(!defined('SESSION_HANDLER'))
+				throw new MyRuntimeException('Undefined Session Handler');
+		
+			$SessionHandler = SESSION_HANDLER;
+			 
+			$this->Session = new $SessionHandler($tableName); 
+	}
+	
+	/**
+	 * is always called before a method is invoked
+	 * throws an error to disable continuing of method
+	 */  
+	public function beforeMethodCall(){
+		
+	}
+	
+	/**
+	 * performs something about the results and is called after every method is invoked
+	 */
+	public function afterMethodCall(&$results){
+		
+	} 
+	
+	/**
+	 * logic before a view is rendered
+	 */
+	public function beforeRenderView(){
+		
+	}
+	
+	/** 
+	 * logic after a view is rendered
+	 */
+	public function afterRenderView(){
+		
+	}
+	
+	
+	/**
+	 * passess any of the data inside viewData in the template
+	 */
+	public function render(){   
+		
+		$dir = $this->basePath .$this->ViewDir.DS.$this->name.DS;  
+
+		if(!file_exists($dir) || !file_exists($dir.$this->currentMethod.".html"))
+		{
+			throw MyRuntimeException::ViewFolderNotFound($this->name, $this->currentMethod);
+		}   
+		
+		$this->beforeRenderView();
+
+		if(sizeof($this->viewData)) extract ($this->viewData);
+		
+		if($this->__hasErrors())
+		{
+			HTMLHelper::$hasErrors = $this->errors; 
+		}
+
+		include_once(ROOT.DS."Layouts".DS."top.html");
+
+		include_once($dir.$this->currentMethod.".html");
+
+		include_once(ROOT.DS."Layouts".DS."bottom.html");
+		
+		$this->afterRenderView(); 
+			
+		if(!headers_sent())
+		{
+			header('Access-Control-Allow-Origin: *');
+			http_response_code(200);
+		}
+		
+		
+	}
+	
+	
+	/**
+	 * checks if current error has values
+	 */
+	public function __hasErrors() : bool {
+		return sizeof(array_keys($this->errors)) > 0 ;
+	}
+	
+	/**
+	 *redirect allows the controller to forfeit method execution and go to another action
+	 *
+	 */
+	public function redirect($url)
+	{
+
+		//check for existing 'error' and save to session
+		if($this->__hasErrors())
+		{
+			$_SESSION['errors'] = $this->errors;
+			$this->errors = array();
+		}
+
+		$_curl = '/' . $this->url;
+
+		if ($_curl !== $url)
+		{	 
+			//do not redirect if curl is home and it is default controller 
+			if(strtolower(DEFAULT_ACTION) !== $this->url) 
+			{
+				header("Location: " . URL . $url);
+				exit;
+			}	
+		}
+	} 
+	/**
+	 * default action
+	 */
+	public function index(){ 
+	}
+	 
+ }
+ 
+ // END OF FILE

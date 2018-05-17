@@ -17,7 +17,6 @@ class EmailHelper {
 	var $headers;
 	var $additionalParams;
 
-
 	public function __construct($to, $subject)
 	{
 		$this->to = $to;
@@ -29,7 +28,7 @@ class EmailHelper {
 
 		// Additional headers
 		$headers[] = 'To: ' . $this->to;
-		$headers[] = 'From: Ulap - Casting Bee <lddefensor@gmail.com>'; 
+		$headers[] = 'From: Ulap <lddefensor@gmail.com>'; 
 
 		$this->headers = $headers;
 

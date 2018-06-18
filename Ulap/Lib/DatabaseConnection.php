@@ -115,7 +115,7 @@ class DatabaseConnection extends \PDO {
 	 	return (preg_match("/^(" . implode("|", array("delete", "insert", "update")) . ") /i", $this->lastQuery));
 	 }
 
-	 private function __saveQueryInSession($sql)
+	 private function __saveQueryInSession($sql, $args = '')
 	 {
 
 		if(!isset($_SESSION['queries']))
@@ -125,8 +125,46 @@ class DatabaseConnection extends \PDO {
  		//do not include show and describe queries
 
 		if(!Helpers\startsWith($sql, 'SHOW TABLES LIKE') && !Helpers\startsWith($sql, 'DESCRIBE'))	
-			$_SESSION['queries'][] = $sql;
+		{ 
+			if($args)
+			{ 
+				$sql = self::__interpolateQuery($sql, $args);
+
+			}
+
+			$_SESSION['queries'][] = $sql; 
+		}
 	 }
+
+	 /**
+	 * https://stackoverflow.com/questions/210564/getting-raw-sql-query-string-from-pdo-prepared-statements
+	 * Replaces any parameter placeholders in a query with the value of that
+	 * parameter. Useful for debugging. Assumes anonymous parameters from 
+	 * $params are are in the same order as specified in $query
+	 *
+	 * @param string $query The sql query with parameter placeholders
+	 * @param array $params The array of substitution parameters
+	 * @return string The interpolated query
+	 */
+	public static function __interpolateQuery($query, $params) {
+	    $keys = array();
+
+	    # build a regular expression for each parameter
+	    foreach ($params as $key => $value) {
+	    	$key = str_replace(':', '', $key);
+	        if (is_string($key)) {
+	            $keys[] = '/:'.$key.'/';
+	        } else {
+	            $keys[] = '/[?]/';
+	        }
+	    } 
+
+	    $query = preg_replace($keys, $params, $query, 1, $count);
+
+	    #trigger_error('replaced '.$count.' keys');
+
+	    return $query;
+	}
 
 	/*
 	  * runs a query and returns results (if any) 
@@ -142,7 +180,7 @@ class DatabaseConnection extends \PDO {
 		//reset last error
 		$this->lastError = null;
 
-		$this->__saveQueryInSession($sql);
+		$this->__saveQueryInSession($sql, $args);
 		
 		try
 		{
@@ -152,8 +190,8 @@ class DatabaseConnection extends \PDO {
 				\Ulap\Helpers\debug($sql, 2, 1);
 			} 
 			
-			$statement = $this->prepare($this->lastQuery);
-			$response = $statement->execute($this->lastArgs);
+			$statement = $this->prepare($this->lastQuery); 
+			$response = $statement->execute($this->lastArgs);  
 			
 			if($response !== false)
 			{

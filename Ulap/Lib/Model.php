@@ -385,17 +385,20 @@ class Model {
 			$conditions[$field] = $data[$field];
 		}
 		
-		$exists = $this->find(array("fields"=>array("id"), "conditions"=>$conditions));
+		$exists = $this->find(array("fields"=>array("id"), "conditions"=>$conditions)); 
 
 
 		$errorCode = 1001;
 		$errorMessage = isset($this->uniqueMessage) ? $this->uniqueMessage : $name . ' already exists'; 
 
+		$pkey = isset($this->primaryKey) ? $this->primaryKey : 'id'; 
+ 
 
-		if(isset($data['id']) && $data['id'])
+
+		if(isset($data[$pkey]) && $data[$pkey])
 		{
-			$id = $data['id'];
-			unset($data['id']);
+			$id = $data[$pkey];
+			unset($data[$pkey]);
 			
 			if(sizeof($exists))
 			{
